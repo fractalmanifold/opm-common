@@ -36,7 +36,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-
+#include "keras_model.h"
+#include "keras_model.cc"
 namespace Opm {
 /*!
  * \ingroup FluidMatrixInteractions
@@ -236,6 +237,18 @@ public:
     template <class Evaluation>
     static Evaluation twoPhaseSatKrw(const Params& params, const Evaluation& Sw)
     {
+     
+       KerasModel model;
+  model.LoadModel("example.model");
+  Tensor in{1};
+  float temp = 0.7;
+  in.data_ = {temp};
+// bba
+  // Run prediction.
+  Tensor out;
+  model.Apply(&in, &out);
+  out.Print();
+  
         assert(0.0 <= Sw && Sw <= 1.0);
 
         return pow(Sw, 2.0/params.lambda() + 3.0);
