@@ -237,21 +237,37 @@ public:
     template <class Evaluation>
     static Evaluation twoPhaseSatKrw(const Params& params, const Evaluation& Sw)
     {
-     
-       KerasModel model;
-  model.LoadModel("example.model");
-  Tensor in{1};
-  float temp = 0.7;
-  in.data_ = {temp};
-// bba
-  // Run prediction.
-  Tensor out;
-  model.Apply(&in, &out);
-  out.Print();
-  
-        assert(0.0 <= Sw && Sw <= 1.0);
+        KerasModel model;
+        model.LoadModel("example.modelBCkrw");
+        Tensor in{1};
+        float temp = Sw;
+        in.data_ = {temp};
+        // bba
+        // Run prediction.
+        Tensor out;
+        model.Apply(&in, &out);
 
-        return pow(Sw, 2.0/params.lambda() + 3.0);
+
+
+
+
+        // Evaluation testval = out[0];
+        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
+        assert(0.0 <= Sw && Sw <= 1.0);
+        auto test = pow(Sw, 2.0/params.lambda() + 3.0);
+        // std::cout<<"test"<< test<<std::endl;
+        auto tempret= 0.0;
+        if (out.data_[0] <= 1.e-50)
+          tempret= test;
+        else if (out.data_[0] > 0.99) {
+          tempret= test;
+        }
+        else
+          tempret=out.data_[0];
+
+        // return pow(Sw, 2.0/params.lambda() + 3.0);
+        // return abs(out.data_[0]);
+            return tempret;
     }
 
     template <class Evaluation>
@@ -280,11 +296,36 @@ public:
     template <class Evaluation>
     static Evaluation twoPhaseSatKrn(const Params& params, const Evaluation& Sw)
     {
+        KerasModel model;
+        model.LoadModel("example.modelBCkrn");
+        Tensor in{1};
+        float temp = Sw;
+        in.data_ = {temp};
+        // bba
+        // Run prediction.
+        Tensor out;
+        model.Apply(&in, &out);
+
         assert(0.0 <= Sw && Sw <= 1.0);
 
         Scalar exponent = 2.0/params.lambda() + 1.0;
         const Evaluation Sn = 1.0 - Sw;
-        return Sn*Sn*(1. - pow(Sw, exponent));
+        auto test = Sn*Sn*(1. - pow(Sw, exponent));
+        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
+        // std::cout<<"test"<< test<<std::endl;
+        // return Sn*Sn*(1. - pow(Sw, exponent));
+        // return abs(out.data_[0]);
+
+        auto tempret= 0.0;
+        if (out.data_[0] <= 1.e-50)
+          tempret= test;
+        else if (out.data_[0] > 0.99) {
+          tempret= test;
+        }
+        else
+          tempret=out.data_[0];
+
+        return tempret;
     }
 
     template <class Evaluation>
