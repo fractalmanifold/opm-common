@@ -242,32 +242,29 @@ public:
         Tensor in{1};
         float temp = Sw;
         in.data_ = {temp};
-        // bba
         // Run prediction.
         Tensor out;
         model.Apply(&in, &out);
 
-
-
-
-
-        // Evaluation testval = out[0];
-        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
         assert(0.0 <= Sw && Sw <= 1.0);
-        auto test = pow(Sw, 2.0/params.lambda() + 3.0);
-        // std::cout<<"test"<< test<<std::endl;
-        auto tempret= 0.0;
+        auto exactsol = pow(Sw, 2.0/params.lambda() + 3.0);
+
+        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
+        // std::cout<<"exactsol"<< exactsol<<std::endl;
+
+        auto result= 0.0;
+
         if (out.data_[0] <= 1.e-50)
-          tempret= test;
+          result= exactsol;
         else if (out.data_[0] > 0.99) {
-          tempret= test;
+          result= exactsol;
         }
         else
-          tempret=out.data_[0];
+          result=out.data_[0];
 
         // return pow(Sw, 2.0/params.lambda() + 3.0);
-        // return abs(out.data_[0]);
-            return tempret;
+        // return out.data_[0];
+        return result;
     }
 
     template <class Evaluation>
@@ -310,22 +307,24 @@ public:
 
         Scalar exponent = 2.0/params.lambda() + 1.0;
         const Evaluation Sn = 1.0 - Sw;
-        auto test = Sn*Sn*(1. - pow(Sw, exponent));
-        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
-        // std::cout<<"test"<< test<<std::endl;
-        // return Sn*Sn*(1. - pow(Sw, exponent));
-        // return abs(out.data_[0]);
+        auto exactsol = Sn*Sn*(1. - pow(Sw, exponent));
 
-        auto tempret= 0.0;
+        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
+        // std::cout<<"exactsol"<< exactsol<<std::endl;
+
+        auto result= 0.0;
+
         if (out.data_[0] <= 1.e-50)
-          tempret= test;
+          result= exactsol;
         else if (out.data_[0] > 0.99) {
-          tempret= test;
+          result= exactsol;
         }
         else
-          tempret=out.data_[0];
+          result=out.data_[0];
 
-        return tempret;
+        // return Sn*Sn*(1. - pow(Sw, exponent));
+        // return out.data_[0];
+        return result;
     }
 
     template <class Evaluation>
