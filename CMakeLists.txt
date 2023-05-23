@@ -364,7 +364,7 @@ endif()
 opm_add_test(keras_model
              ONLY_COMPILE
              SOURCES
-                opm/material/fluidmatrixinteractions/keras_model.cc)
+                opm/material/fluidmatrixinteractions/ml_tools/keras_model.cc)
 
 # Explicitly link tests needing dune-common.
 # To avoid pulling dune-common into the opm-common interface
