@@ -238,7 +238,8 @@ public:
     static Evaluation twoPhaseSatKrw(const Params& params, const Evaluation& Sw)
     {
         KerasModel model;
-        model.LoadModel("example.modelBCkrw");
+        // Beware of the correct path (we are working in opm-model/test in the current case)
+        model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrw");
         Tensor in{1};
         float temp = Sw;
         in.data_ = {temp};
@@ -293,8 +294,12 @@ public:
     template <class Evaluation>
     static Evaluation twoPhaseSatKrn(const Params& params, const Evaluation& Sw)
     {
+        assert(0.0 <= Sw && Sw <= 1.0);
+
+
         KerasModel model;
-        model.LoadModel("example.modelBCkrn");
+        // Beware of the correct path (we are working in opm-model/test in the current case)
+        model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrn");
         Tensor in{1};
         float temp = Sw;
         in.data_ = {temp};
@@ -302,8 +307,6 @@ public:
         // Run prediction.
         Tensor out;
         model.Apply(&in, &out);
-
-        assert(0.0 <= Sw && Sw <= 1.0);
 
         Scalar exponent = 2.0/params.lambda() + 1.0;
         const Evaluation Sn = 1.0 - Sw;

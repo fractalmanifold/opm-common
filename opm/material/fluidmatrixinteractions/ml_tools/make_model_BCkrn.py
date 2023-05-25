@@ -11,14 +11,14 @@ import pandas as pd
 #def computeBCKrw(satW, lambdaparam):
 #  kr = pow(satW, 2.0/lambdaparam + 3.0)
 #  return kr
-  
+
 def computeBCKrn(satW, lambdaparam):
   Sn = 1.0 - satW;
   exponent = 2.0/lambdaparam + 1.0
   kr = Sn*Sn*(1. - pow(satW, exponent))
   return kr
 
-        
+
 # sw = np.linspace(0, 1, num=1001, endpoint=True)
 sw = np.linspace(0, 1, 10001).reshape( (10001, 1) )
 
@@ -74,23 +74,23 @@ print('blah: %.3f' % mean_squared_error(y_plot, yhat_plot))
 # print(x_plot[2])
 # print(yhat_plot[2])
 
-
-df = pd.DataFrame({'Id': x_plot[:, 0], 'Amount': yhat_plot[:, 0].astype(float)})
-
-
-def f(a):
-    a = df.loc[df['Id'] == a, 'Amount']
-    #for no match
-    if a.empty:
-        return 'no match'
-    #for multiple match
-    elif len(a) > 1:
-        return a
-    else:
-    #for match one value only
-        return a.item()
-
-print (f(0.77))
+#
+# df = pd.DataFrame({'Id': x_plot[:, 0], 'Amount': yhat_plot[:, 0].astype(float)})
+#
+#
+# def f(a):
+#     a = df.loc[df['Id'] == a, 'Amount']
+#     #for no match
+#     if a.empty:
+#         return 'no match'
+#     #for multiple match
+#     elif len(a) > 1:
+#         return a
+#     else:
+#     #for match one value only
+#         return a.item()
+#
+# # print (f(0.77))
 
 # plot x vs y
 pyplot.plot(x_plot,y_plot, label='Actual')
@@ -100,10 +100,10 @@ pyplot.title('Input (x) versus Output (y)')
 pyplot.xlabel('Input Variable (x)')
 pyplot.ylabel('Output Variable (y)')
 pyplot.legend()
-pyplot.savefig('filename.png', dpi=1200)
+pyplot.savefig('filenamekrn.png', dpi=1200)
 pyplot.show()
 #save model
-#from keras2cpp import export_model
-#export_model(model, 'example.model')
 from kerasify import export_model
+# lazy hack to be changed
+
 export_model(model, 'example.modelBCkrn')

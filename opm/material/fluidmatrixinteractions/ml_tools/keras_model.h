@@ -202,65 +202,65 @@ class Tensor {
         return tmp;
     }
 
-    void Print() {
-        if (dims_.size() == 1) {
-            printf("[ ");
-            for (int i = 0; i < dims_[0]; i++) {
-                printf("%f ", (*this)(i));
-            }
-            printf("]\n");
-        } else if (dims_.size() == 2) {
-            printf("[\n");
-            for (int i = 0; i < dims_[0]; i++) {
-                printf(" [ ");
-                for (int j = 0; j < dims_[1]; j++) {
-                    printf("%f ", (*this)(i, j));
-                }
-                printf("]\n");
-            }
-            printf("]\n");
-        } else if (dims_.size() == 3) {
-            printf("[\n");
-            for (int i = 0; i < dims_[0]; i++) {
-                printf(" [\n");
-                for (int j = 0; j < dims_[1]; j++) {
-                    printf("  [ ");
-                    for (int k = 0; k < dims_[2]; k++) {
-                        printf("%f ", (*this)(i, j, k));
-                    }
-                    printf("  ]\n");
-                }
-                printf(" ]\n");
-            }
-            printf("]\n");
-        } else if (dims_.size() == 4) {
-            printf("[\n");
-            for (int i = 0; i < dims_[0]; i++) {
-                printf(" [\n");
-                for (int j = 0; j < dims_[1]; j++) {
-                    printf("  [\n");
-                    for (int k = 0; k < dims_[2]; k++) {
-                        printf("   [");
-                        for (int l = 0; l < dims_[3]; l++) {
-                            printf("%f ", (*this)(i, j, k, l));
-                        }
-                        printf("]\n");
-                    }
-                    printf("  ]\n");
-                }
-                printf(" ]\n");
-            }
-            printf("]\n");
-        }
-    }
+    // void Print() {
+    //     if (dims_.size() == 1) {
+    //         printf("[ ");
+    //         for (int i = 0; i < dims_[0]; i++) {
+    //             printf("%f ", (*this)(i));
+    //         }
+    //         printf("]\n");
+    //     } else if (dims_.size() == 2) {
+    //         printf("[\n");
+    //         for (int i = 0; i < dims_[0]; i++) {
+    //             printf(" [ ");
+    //             for (int j = 0; j < dims_[1]; j++) {
+    //                 printf("%f ", (*this)(i, j));
+    //             }
+    //             printf("]\n");
+    //         }
+    //         printf("]\n");
+    //     } else if (dims_.size() == 3) {
+    //         printf("[\n");
+    //         for (int i = 0; i < dims_[0]; i++) {
+    //             printf(" [\n");
+    //             for (int j = 0; j < dims_[1]; j++) {
+    //                 printf("  [ ");
+    //                 for (int k = 0; k < dims_[2]; k++) {
+    //                     printf("%f ", (*this)(i, j, k));
+    //                 }
+    //                 printf("  ]\n");
+    //             }
+    //             printf(" ]\n");
+    //         }
+    //         printf("]\n");
+    //     } else if (dims_.size() == 4) {
+    //         printf("[\n");
+    //         for (int i = 0; i < dims_[0]; i++) {
+    //             printf(" [\n");
+    //             for (int j = 0; j < dims_[1]; j++) {
+    //                 printf("  [\n");
+    //                 for (int k = 0; k < dims_[2]; k++) {
+    //                     printf("   [");
+    //                     for (int l = 0; l < dims_[3]; l++) {
+    //                         printf("%f ", (*this)(i, j, k, l));
+    //                     }
+    //                     printf("]\n");
+    //                 }
+    //                 printf("  ]\n");
+    //             }
+    //             printf(" ]\n");
+    //         }
+    //         printf("]\n");
+    //     }
+    // }
 
-    void PrintShape() {
-        printf("(");
-        for (unsigned int i = 0; i < dims_.size(); i++) {
-            printf("%d ", dims_[i]);
-        }
-        printf(")\n");
-    }
+    // void PrintShape() {
+    //     printf("(");
+    //     for (unsigned int i = 0; i < dims_.size(); i++) {
+    //         printf("%d ", dims_[i]);
+    //     }
+    //     printf(")\n");
+    // }
 
     std::vector<int> dims_;
     std::vector<float> data_;
