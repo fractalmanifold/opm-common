@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2016 Robert W. Rose
- *
- * MIT License, see LICENSE file.
- */
 
 #include "keras_model.h"
 
@@ -11,6 +6,10 @@
 #include <limits>
 #include <stdio.h>
 #include <utility>
+
+
+namespace Opm {
+
 
 bool ReadUnsignedInt(std::ifstream* file, unsigned int* i) {
     KASSERT(file, "Invalid file stream");
@@ -94,7 +93,7 @@ bool KerasLayerActivation::Apply(Tensor* in, Tensor* out) {
         break;
     case kSoftPlus:
         for (size_t i = 0; i < out->data_.size(); i++) {
-            out->data_[i] = std::log(1.0 + std::exp(out->data_[i]));
+            out->data_[i] = log(1.0 + exp(out->data_[i]));
         }
         break;
     case kHardSigmoid:
@@ -115,9 +114,9 @@ bool KerasLayerActivation::Apply(Tensor* in, Tensor* out) {
             float& x = out->data_[i];
 
             if (x >= 0) {
-                out->data_[i] = 1.0 / (1.0 + std::exp(-x));
+                out->data_[i] = 1.0 / (1.0 + exp(-x));
             } else {
-                float z = std::exp(x);
+                float z = exp(x);
                 out->data_[i] = z / (1.0 + z);
             }
         }
@@ -684,3 +683,6 @@ bool KerasModel::Apply(Tensor* in, Tensor* out) {
 
     return true;
 }
+
+
+} // namespace Opm

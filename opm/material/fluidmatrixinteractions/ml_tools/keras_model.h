@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2016 Robert W. Rose
- *
- * MIT License, see LICENSE file.
- */
-
 #ifndef KERAS_MODEL_H_
 #define KERAS_MODEL_H_
 
@@ -13,6 +7,11 @@
 #include <numeric>
 #include <string>
 #include <vector>
+
+#include <opm/material/densead/Math.hpp>
+#include <sstream>
+
+namespace Opm {
 
 #define KASSERT(x, ...)                                                        \
     if (!(x)) {                                                                \
@@ -468,5 +467,7 @@ class KerasTimer {
   private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;
 };
+
+} // namespace Opm
 
 #endif // KERAS_MODEL_H_
