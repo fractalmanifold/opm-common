@@ -241,7 +241,7 @@ public:
         // Beware of the correct path (we are working in opm-model/test in the current case)
         model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrw");
         Tensor in{1};
-        float temp = Sw;
+        const Evaluation temp = Sw;
         in.data_ = {temp};
         // Run prediction.
         Tensor out;
@@ -253,18 +253,18 @@ public:
         // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
         // std::cout<<"exactsol"<< exactsol<<std::endl;
 
-        auto result= 0.0;
+        Evaluation result= 0.0;
 
-        if (out.data_[0] <= 1.e-50)
+        if (out.data_[0].value() <= 1.e-50)
           result= exactsol;
-        else if (out.data_[0] > 0.99) {
+        else if (out.data_[0].value() > 0.99) {
           result= exactsol;
         }
         else
-          result=out.data_[0];
+          result=out.data_[0].value();
 
         // return pow(Sw, 2.0/params.lambda() + 3.0);
-        // return out.data_[0];
+        // return out.data_[0].value();
         return result;
     }
 
@@ -301,32 +301,32 @@ public:
         // Beware of the correct path (we are working in opm-model/test in the current case)
         model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrn");
         Tensor in{1};
-        float temp = Sw;
+        const Evaluation temp = Sw;
         in.data_ = {temp};
         // bba
         // Run prediction.
         Tensor out;
         model.Apply(&in, &out);
-
+        //
         Scalar exponent = 2.0/params.lambda() + 1.0;
         const Evaluation Sn = 1.0 - Sw;
         auto exactsol = Sn*Sn*(1. - pow(Sw, exponent));
 
         // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
-        // std::cout<<"exactsol"<< exactsol<<std::endl;
+        // std::cout<<"exactsol"<< out.data_[0].value()<<std::endl;
+        //
+        Evaluation result= 0.0;
 
-        auto result= 0.0;
-
-        if (out.data_[0] <= 1.e-50)
+        if (out.data_[0].value() <= 1.e-50)
           result= exactsol;
-        else if (out.data_[0] > 0.99) {
+        else if (out.data_[0].value() > 0.99) {
           result= exactsol;
         }
         else
-          result=out.data_[0];
-
+          result=out.data_[0].value();
+        //
         // return Sn*Sn*(1. - pow(Sw, exponent));
-        // return out.data_[0];
+        // return out.data_[0].value();
         return result;
     }
 

@@ -11,6 +11,8 @@
 #include <opm/material/densead/Math.hpp>
 #include <sstream>
 
+typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
+
 namespace Opm {
 
 #define KASSERT(x, ...)                                                        \
@@ -81,14 +83,14 @@ class Tensor {
         dims_ = {elements};
     }
 
-    inline float& operator()(int i) {
+    inline Evaluation& operator()(int i) {
         KDEBUG(dims_.size() == 1, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
 
         return data_[i];
     }
 
-    inline float& operator()(int i, int j) {
+    inline Evaluation& operator()(int i, int j) {
         KDEBUG(dims_.size() == 2, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -96,7 +98,7 @@ class Tensor {
         return data_[dims_[1] * i + j];
     }
 
-    inline float operator()(int i, int j) const {
+    inline Evaluation operator()(int i, int j) const {
         KDEBUG(dims_.size() == 2, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -104,7 +106,7 @@ class Tensor {
         return data_[dims_[1] * i + j];
     }
 
-    inline float& operator()(int i, int j, int k) {
+    inline Evaluation& operator()(int i, int j, int k) {
         KDEBUG(dims_.size() == 3, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -113,7 +115,7 @@ class Tensor {
         return data_[dims_[2] * (dims_[1] * i + j) + k];
     }
 
-    inline float& operator()(int i, int j, int k, int l) {
+    inline Evaluation& operator()(int i, int j, int k, int l) {
         KDEBUG(dims_.size() == 4, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -123,7 +125,7 @@ class Tensor {
         return data_[dims_[3] * (dims_[2] * (dims_[1] * i + j) + k) + l];
     }
 
-    inline void Fill(float value) {
+    inline void Fill(Evaluation value) {
         std::fill(data_.begin(), data_.end(), value);
     }
 
@@ -133,14 +135,14 @@ class Tensor {
             std::vector<int>(dims_.begin() + 1, dims_.end());
         int pack_size = std::accumulate(pack_dims.begin(), pack_dims.end(), 0);
 
-        std::vector<float>::const_iterator first =
+        std::vector<Evaluation>::const_iterator first =
             data_.begin() + (row * pack_size);
-        std::vector<float>::const_iterator last =
+        std::vector<Evaluation>::const_iterator last =
             data_.begin() + (row + 1) * pack_size;
 
         Tensor x = Tensor();
         x.dims_ = pack_dims;
-        x.data_ = std::vector<float>(first, last);
+        x.data_ = std::vector<Evaluation>(first, last);
 
         return x;
     }
@@ -162,7 +164,7 @@ class Tensor {
 
         std::transform(data_.begin(), data_.end(), other.data_.begin(),
                        std::back_inserter(result.data_),
-                       [](float x, float y) { return x + y; });
+                       [](Evaluation x, Evaluation y) { return x + y; });
 
         return result;
     }
@@ -177,7 +179,7 @@ class Tensor {
 
         std::transform(data_.begin(), data_.end(), other.data_.begin(),
                        std::back_inserter(result.data_),
-                       [](float x, float y) { return x * y; });
+                       [](Evaluation x, Evaluation y) { return x * y; });
 
         return result;
     }
@@ -262,7 +264,7 @@ class Tensor {
     // }
 
     std::vector<int> dims_;
-    std::vector<float> data_;
+    std::vector<Evaluation> data_;
 };
 
 class KerasLayer {
@@ -357,7 +359,7 @@ class KerasLayerElu : public KerasLayer {
     virtual bool Apply(Tensor* in, Tensor* out);
 
   private:
-    float alpha_;
+    Evaluation alpha_;
 };
 
 class KerasLayerMaxPooling2d : public KerasLayer {
@@ -455,7 +457,7 @@ class KerasTimer {
 
     void Start() { start_ = std::chrono::high_resolution_clock::now(); }
 
-    double Stop() {
+    Evaluation Stop() {
         std::chrono::time_point<std::chrono::high_resolution_clock> now =
             std::chrono::high_resolution_clock::now();
 
