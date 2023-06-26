@@ -361,17 +361,14 @@ if(ENABLE_ECL_INPUT)
 
 endif()
 
-opm_add_test(keras_model
-             ONLY_COMPILE
-             SOURCES
-                opm/material/fluidmatrixinteractions/ml_tools/keras_model.cc)
+add_library(keras_model OBJECT opm/material/fluidmatrixinteractions/ml_tools/keras_model.cc)
 
 # Explicitly link tests needing dune-common.
 # To avoid pulling dune-common into the opm-common interface
 find_package(dune-common REQUIRED)
 opm_need_version_of ("dune-common")
 target_include_directories(dunecommon INTERFACE ${dune-common_INCLUDE_DIRS})
-string(REPLACE " " ";" dflags ${dune-common_CXX_FLAGS})
+string(REPLACE " " ";" ";" dflags ${dune-common_CXX_FLAGS})
 target_compile_options(dunecommon INTERFACE ${dflags})
 target_compile_definitions(dunecommon INTERFACE DUNE_COMMON_VERSION_MAJOR=${DUNE_COMMON_VERSION_MAJOR})
 target_compile_definitions(dunecommon INTERFACE DUNE_COMMON_VERSION_MINOR=${DUNE_COMMON_VERSION_MINOR})

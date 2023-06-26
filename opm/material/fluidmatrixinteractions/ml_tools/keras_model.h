@@ -11,7 +11,9 @@
 #include <opm/material/densead/Math.hpp>
 #include <sstream>
 
-typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
+// typedef double Scalar;
+
+typedef Opm::DenseAd::Evaluation<double, 2> Evaluation;
 
 namespace Opm {
 

@@ -36,8 +36,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+
 #include "ml_tools/keras_model.h"
 #include "ml_tools/keras_model.cc"
+
 namespace Opm {
 /*!
  * \ingroup FluidMatrixInteractions
