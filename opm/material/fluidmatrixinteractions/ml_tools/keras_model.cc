@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2016 Robert W. Rose
- *
- * MIT License, see LICENSE file.
- */
 
 #include "keras_model.h"
 
@@ -11,6 +6,12 @@
 #include <limits>
 #include <stdio.h>
 #include <utility>
+
+
+namespace Opm {
+
+#pragma once
+
 
 bool ReadUnsignedInt(std::ifstream* file, unsigned int* i) {
     KASSERT(file, "Invalid file stream");
@@ -22,23 +23,23 @@ bool ReadUnsignedInt(std::ifstream* file, unsigned int* i) {
     return true;
 }
 
-bool ReadFloat(std::ifstream* file, float* f) {
+bool ReadFloat(std::ifstream* file, Evaluation* f) {
     KASSERT(file, "Invalid file stream");
     KASSERT(f, "Invalid pointer");
 
     file->read((char*)f, sizeof(float));
-    KASSERT(file->gcount() == sizeof(float), "Expected float");
+    KASSERT(file->gcount() == sizeof(float), "Expected Evaluation");
 
     return true;
 }
 
-bool ReadFloats(std::ifstream* file, float* f, size_t n) {
+bool ReadFloats(std::ifstream* file, Evaluation* f, size_t n) {
     KASSERT(file, "Invalid file stream");
     KASSERT(f, "Invalid pointer");
 
     file->read((char*)f, sizeof(float) * n);
     KASSERT(((unsigned int)file->gcount()) == sizeof(float) * n,
-            "Expected floats");
+            "Expected Evaluations");
 
     return true;
 }
@@ -94,12 +95,12 @@ bool KerasLayerActivation::Apply(Tensor* in, Tensor* out) {
         break;
     case kSoftPlus:
         for (size_t i = 0; i < out->data_.size(); i++) {
-            out->data_[i] = std::log(1.0 + std::exp(out->data_[i]));
+            out->data_[i] = log(1.0 + exp(out->data_[i]));
         }
         break;
     case kHardSigmoid:
         for (size_t i = 0; i < out->data_.size(); i++) {
-            float x = (out->data_[i] * 0.2) + 0.5;
+            Evaluation x = (out->data_[i] * 0.2) + 0.5;
 
             if (x <= 0) {
                 out->data_[i] = 0.0;
@@ -112,19 +113,19 @@ bool KerasLayerActivation::Apply(Tensor* in, Tensor* out) {
         break;
     case kSigmoid:
         for (size_t i = 0; i < out->data_.size(); i++) {
-            float& x = out->data_[i];
+            Evaluation& x = out->data_[i];
 
             if (x >= 0) {
-                out->data_[i] = 1.0 / (1.0 + std::exp(-x));
+                out->data_[i] = 1.0 / (1.0 + exp(-x));
             } else {
-                float z = std::exp(x);
+                Evaluation z = exp(x);
                 out->data_[i] = z / (1.0 + z);
             }
         }
         break;
     case kTanh:
         for (size_t i = 0; i < out->data_.size(); i++) {
-            out->data_[i] = std::tanh(out->data_[i]);
+            out->data_[i] = sinh(out->data_[i])/cosh(out->data_[i]);
         }
         break;
     default:
@@ -252,8 +253,8 @@ bool KerasLayerConvolution2d::Apply(Tensor* in, Tensor* out) {
                     // Iterate over kernel.
                     for (int k = 0; k < weights_.dims_[2]; k++) {
                         for (int l = 0; l < weights_.dims_[3]; l++) {
-                            const float& weight = weights_(i, j, k, l);
-                            const float& value =
+                            const Evaluation& weight = weights_(i, j, k, l);
+                            const Evaluation& value =
                                 (*in)(j, tj - st_nj + k, tk - st_nk + l);
 
                             tmp(i, tj - st_nj, tk - st_nk) += weight * value;
@@ -340,11 +341,11 @@ bool KerasLayerMaxPooling2d::Apply(Tensor* in, Tensor* out) {
                 const int tk = k * pool_size_k_;
 
                 // Find maximum value over patch starting at tj, tk.
-                float max_val = -std::numeric_limits<float>::infinity();
+                Evaluation max_val = -std::numeric_limits<Evaluation>::infinity();
 
                 for (unsigned int pj = 0; pj < pool_size_j_; pj++) {
                     for (unsigned int pk = 0; pk < pool_size_k_; pk++) {
-                        const float& pool_val = (*in)(i, tj + pj, tk + pk);
+                        const Evaluation& pool_val = (*in)(i, tj + pj, tk + pk);
                         if (pool_val > max_val) {
                             max_val = pool_val;
                         }
@@ -568,11 +569,11 @@ bool KerasLayerEmbedding::Apply(Tensor* in, Tensor* out) {
     out->dims_ = {output_rows, output_cols};
     out->data_.reserve(output_rows * output_cols);
 
-    std::for_each(in->data_.begin(), in->data_.end(), [=](float i) {
-        std::vector<float>::const_iterator first =
-            this->weights_.data_.begin() + (i * output_cols);
-        std::vector<float>::const_iterator last =
-            this->weights_.data_.begin() + (i + 1) * output_cols;
+    std::for_each(in->data_.begin(), in->data_.end(), [=](Evaluation i) {
+        std::vector<Evaluation>::const_iterator first =
+            this->weights_.data_.begin() + (i.value() * output_cols);
+        std::vector<Evaluation>::const_iterator last =
+            this->weights_.data_.begin() + (i.value() + 1) * output_cols;
 
         out->data_.insert(out->data_.end(), first, last);
     });
@@ -684,3 +685,6 @@ bool KerasModel::Apply(Tensor* in, Tensor* out) {
 
     return true;
 }
+
+
+} // namespace Opm
