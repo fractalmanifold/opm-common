@@ -281,9 +281,9 @@ public:
         Evaluation result= 0.0;
         Evaluation exactsol = sqrt(Sw)*r*r;
 
-        if (out.data_[0].value() <= 1.e-50)
+        if (out.data_[0].value() <= 1.e-5)
           result= exactsol;
-        else if (out.data_[0].value() > 0.99) {
+        else if (out.data_[0].value() > 0.9) {
           result= exactsol;
         }
         else
@@ -336,9 +336,9 @@ public:
         Evaluation result= 0.0;
         Evaluation exactsol = pow(1 - Sw, 1.0/3) * pow(1 - pow(Sw, 1/params.vgM()), 2*params.vgM());
 
-        if (out.data_[0].value() <= 1.e-12)
+        if (out.data_[0].value() <= 1.e-5)
           result= exactsol;
-        else if (out.data_[0].value() > 0.99) {
+        else if (out.data_[0].value() > 0.9) {
           result= exactsol;
         }
         else
