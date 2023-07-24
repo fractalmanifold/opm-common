@@ -10,7 +10,7 @@
 
 namespace Opm {
 
-
+#pragma once
 bool ReadUnsignedInt(std::ifstream* file, unsigned int* i) {
     KASSERT(file, "Invalid file stream");
     KASSERT(i, "Invalid pointer");
@@ -123,7 +123,7 @@ bool KerasLayerActivation::Apply(Tensor* in, Tensor* out) {
         break;
     case kTanh:
         for (size_t i = 0; i < out->data_.size(); i++) {
-            out->data_[i] = sinh(out->data_[i])/cosh(out->data_[i]);
+            out->data_[i] = tan(out->data_[i]);
         }
         break;
     default:
@@ -293,7 +293,7 @@ bool KerasLayerFlatten::Apply(Tensor* in, Tensor* out) {
 bool KerasLayerElu::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
-    KASSERT(ReadFloat(file, &alpha_), "Failed to read alpha");
+    // KASSERT(ReadFloat(file, &alpha_), "Failed to read alpha");
 
     return true;
 }
