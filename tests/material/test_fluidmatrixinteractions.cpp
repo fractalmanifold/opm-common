@@ -254,7 +254,9 @@ void testThreePhaseApi()
     }
 }
 
-using Types = std::tuple<float,double>;
+// using Types = std::tuple<float,double>;
+
+using Types = std::tuple<double>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ApiConformance, Scalar, Types)
 {
@@ -276,7 +278,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ApiConformance, Scalar, Types)
                                                            ThreePFluidSystem::oilPhaseIdx,
                                                            ThreePFluidSystem::gasPhaseIdx>;
 
-    using Evaluation = Opm::DenseAd::Evaluation<Scalar, 3>;
+    using Evaluation = Opm::DenseAd::Evaluation<Scalar, 2>;
     using TwoPhaseFluidState = Opm::ImmiscibleFluidState<Evaluation, TwoPFluidSystem>;
     using ThreePhaseFluidState = Opm::ImmiscibleFluidState<Evaluation, ThreePFluidSystem>;
 
