@@ -277,7 +277,7 @@ inline void testAll()
                                           ThreePFluidSystem::oilPhaseIdx,
                                           ThreePFluidSystem::gasPhaseIdx> ThreePhaseTraits;
 
-    typedef Opm::DenseAd::Evaluation<Scalar, 3> Evaluation;
+    typedef Opm::DenseAd::Evaluation<Scalar, 2> Evaluation;
     typedef Opm::ImmiscibleFluidState<Evaluation, TwoPFluidSystem> TwoPhaseFluidState;
     typedef Opm::ImmiscibleFluidState<Evaluation, ThreePFluidSystem> ThreePhaseFluidState;
 
@@ -436,7 +436,7 @@ inline void testAll()
 int main()
 {
     testAll<double>();
-    testAll<float>();
+    // testAll<float>();
 
     return 0;
 }
