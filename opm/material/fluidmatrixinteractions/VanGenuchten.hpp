@@ -274,30 +274,28 @@ public:
       Tensor out;
       model.Apply(&in, &out);
 
+      assert(0.0 <= Sw && Sw <= 1.0);
 
-        assert(0.0 <= Sw && Sw <= 1.0);
+      Evaluation r = 1.0 - pow(1.0 - pow(Sw, 1/params.vgM()), params.vgM());
+      Evaluation result= 0.0;
+      Evaluation exactsol = sqrt(Sw)*r*r;
 
-        Evaluation r = 1.0 - pow(1.0 - pow(Sw, 1/params.vgM()), params.vgM());
-        Evaluation result= 0.0;
-        Evaluation exactsol = sqrt(Sw)*r*r;
+      if (out.data_[0].value() <= 1.e-5)
+        result= exactsol;
+      else if (out.data_[0].value() > 0.9) {
+        result= exactsol;
+      }
+      else
+        result=out.data_[0].value();
+      //
+      // std::cout<<"params.vgM()"<< params.vgM()<<std::endl;
 
-        if (out.data_[0].value() <= 1.e-5)
-          result= exactsol;
-        else if (out.data_[0].value() > 0.9) {
-          result= exactsol;
-        }
-        else
-          result=out.data_[0].value();
-        //
+      // return Sn*Sn*(1. - pow(Sw, exponent));
+      // return out.data_[0].value();
+      return result;
 
-        // std::cout<<"params.vgM()"<< params.vgM()<<std::endl;
-
-        // return Sn*Sn*(1. - pow(Sw, exponent));
-        // return out.data_[0].value();
-        return result;
-
-        // return out.data_[0].value();
-        // return sqrt(Sw)*r*r;
+      // return out.data_[0].value();
+      // return sqrt(Sw)*r*r;
     }
 
     /*!
