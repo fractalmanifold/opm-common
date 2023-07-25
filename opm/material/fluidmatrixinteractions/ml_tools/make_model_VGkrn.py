@@ -32,7 +32,6 @@ VGKrn = computeVGKrn(sw, lambdaparam)
 
 # define the dataset
 x = sw
-# x = asarray([i for i in range(-50,51)])
 y = np.array([VGKrn])
 
 print(x.min(), x.max(), y.min(), y.max())
@@ -45,6 +44,7 @@ x = scale_x.fit_transform(x)
 scale_y = MinMaxScaler()
 y = scale_y.fit_transform(y)
 print(x.min(), x.max(), y.min(), y.max())
+
 # design the neural network model
 model = Sequential()
 model.add(Dense(3, input_dim=1, activation='relu', kernel_initializer='he_uniform'))
@@ -55,8 +55,8 @@ model.add(Dense(10, activation='relu', kernel_initializer='he_uniform'))
 model.add(Dense(10, activation='relu', kernel_initializer='he_uniform'))
 model.add(Dense(10, activation='relu', kernel_initializer='he_uniform'))
 # model.add(Dense(1000, activation='relu', kernel_initializer='he_uniform'))
-
 model.add(Dense(1))
+
 # define the loss function and optimization algorithm
 model.compile(loss='mse', optimizer='adam')
 # ft the model on the training dataset

@@ -298,14 +298,12 @@ public:
     {
         assert(0.0 <= Sw && Sw <= 1.0);
 
-
         KerasModel model;
         // Beware of the correct path (we are working in opm-model/test in the current case)
         model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrn");
         Tensor in{1};
         const Evaluation temp = Sw;
         in.data_ = {temp};
-        // bba
         // Run prediction.
         Tensor out;
         model.Apply(&in, &out);
@@ -314,9 +312,6 @@ public:
         const Evaluation Sn = 1.0 - Sw;
         auto exactsol = Sn*Sn*(1. - pow(Sw, exponent));
 
-        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
-        // std::cout<<"exactsol"<< out.data_[0].value()<<std::endl;
-        //
         Evaluation result= 0.0;
 
         if (out.data_[0].value() <= 1.e-50)

@@ -11,14 +11,14 @@ import pandas as pd
 def computeBCKrw(satW, lambdaparam):
   kr = pow(satW, 2.0/lambdaparam + 3.0)
   return kr
-  
+
 #def computeBCKrn(satW, lambdaparam):
 #  Sn = 1.0 - satW;
 #  exponent = 2.0/lambdaparam + 1.0
 #  kr = Sn*Sn*(1. - pow(satW, exponent))
 #  return kr
 
-        
+
 # sw = np.linspace(0, 1, num=1001, endpoint=True)
 sw = np.linspace(0, 1, 10001).reshape( (10001, 1) )
 
@@ -31,7 +31,6 @@ BCKrw = computeBCKrw(sw, lambdaparam)
 
 # define the dataset
 x = sw
-# x = asarray([i for i in range(-50,51)])
 y = np.array([BCKrw])
 
 print(x.min(), x.max(), y.min(), y.max())
@@ -44,6 +43,7 @@ x = scale_x.fit_transform(x)
 scale_y = MinMaxScaler()
 y = scale_y.fit_transform(y)
 print(x.min(), x.max(), y.min(), y.max())
+
 # design the neural network model
 model = Sequential()
 model.add(Dense(3, input_dim=1, activation='relu', kernel_initializer='he_uniform'))
@@ -54,8 +54,8 @@ model.add(Dense(10, activation='relu', kernel_initializer='he_uniform'))
 model.add(Dense(10, activation='relu', kernel_initializer='he_uniform'))
 model.add(Dense(10, activation='relu', kernel_initializer='he_uniform'))
 # model.add(Dense(1000, activation='relu', kernel_initializer='he_uniform'))
-
 model.add(Dense(1))
+
 # define the loss function and optimization algorithm
 model.compile(loss='mse', optimizer='adam')
 # ft the model on the training dataset
@@ -70,9 +70,6 @@ yhat_plot = scale_y.inverse_transform(yhat)
 print('MSE: %.3f' % mean_squared_error(y_plot, yhat_plot))
 print(yhat_plot)
 print('blah: %.3f' % mean_squared_error(y_plot, yhat_plot))
-
-# print(x_plot[2])
-# print(yhat_plot[2])
 
 
 df = pd.DataFrame({'Id': x_plot[:, 0], 'Amount': yhat_plot[:, 0].astype(float)})
@@ -90,8 +87,6 @@ def f(a):
     #for match one value only
         return a.item()
 
-print (f(0.77))
-
 # plot x vs y
 pyplot.plot(x_plot,y_plot, label='Actual')
 # plot x vs yhat
@@ -102,8 +97,7 @@ pyplot.ylabel('Output Variable (y)')
 pyplot.legend()
 pyplot.savefig('filename.png', dpi=1200)
 pyplot.show()
+
 #save model
-#from keras2cpp import export_model
-#export_model(model, 'example.model')
 from kerasify import export_model
 export_model(model, 'example.modelBCkrw')
