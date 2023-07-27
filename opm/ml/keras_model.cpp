@@ -1,5 +1,5 @@
 
-#include "keras_model.h"
+#include "keras_model.hpp"
 
 #include <cmath>
 #include <fstream>

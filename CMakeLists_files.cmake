@@ -62,6 +62,8 @@ list (APPEND MAIN_SOURCE_FILES
       src/opm/material/fluidsystems/blackoilpvt/SolventPvt.cpp
       src/opm/material/fluidsystems/blackoilpvt/WetGasPvt.cpp
       src/opm/material/fluidsystems/blackoilpvt/WetHumidGasPvt.cpp
+      opm/ml/keras_model.cpp
+      
 )
 if(ENABLE_ECL_INPUT)
   list(APPEND MAIN_SOURCE_FILES
@@ -919,6 +921,7 @@ list( APPEND PUBLIC_HEADER_FILES
       opm/material/fluidmatrixinteractions/BrooksCoreyParams.hpp
       opm/material/fluidmatrixinteractions/BrooksCorey.hpp
       opm/material/fluidmatrixinteractions/PiecewiseLinearTwoPhaseMaterial.hpp
+      opm/ml/keras_model.hpp
       opm/material/checkFluidSystem.hpp
       opm/material/viscositymodels/LBC.hpp
       opm/material/viscositymodels/LBCco2rich.hpp

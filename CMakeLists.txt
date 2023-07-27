@@ -361,9 +361,6 @@ if(ENABLE_ECL_INPUT)
 
 endif()
 
-add_library(keras_model OBJECT opm/material/fluidmatrixinteractions/ml_tools/keras_model.cc)
-
-
 # Explicitly link tests needing dune-common.
 # To avoid pulling dune-common into the opm-common interface
 find_package(dune-common REQUIRED)

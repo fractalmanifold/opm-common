@@ -37,8 +37,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "ml_tools/keras_model.h"
-#include "ml_tools/keras_model.cc"
+#include <opm/ml/keras_model.hpp>
 
 namespace Opm {
 /*!
