@@ -55,20 +55,19 @@ logger.info("Prepare dataset")
 h = np.array([0.24])
 # k = np.linspace(0, 1, 100)
 k = np.linspace(0, 1, 100)
-# r_e = np.logspace(-1, 0, 500)
-r_e = np.array([0.1])
+r_e = np.linspace(10, 300, 300)
+# r_e = np.array([0.1])
 r_w = np.array([0.01])
 
-# h = np.array(1)
-# # k = np.logspace(-2, 0, 100)
-# k = np.array(0.1)
-# # k = np.array(3.00814e-12)
-# # # TODO: Implement some more sophisticated logic s.t. :math:`r_e\in[0,h]` is uniformly
-# # # distributed.
-# # r_e = np.logspace(2, 3.5, 500) / 200
-# # r_w = np.linspace(0.01, 0.04, 10)
-# r_w = np.array(0.01)
 
+h = np.array([1])
+k = np.logspace(-2, 0, 100)
+# k = np.array(0.1)
+# # TODO: Implement some more sophisticated logic s.t. :math:`r_e\in[0,h]` is uniformly
+# # distributed.
+r_e = np.linspace(0.05, 0.5, 300)
+r_w = np.array([0.01])
+# r_w = np.linspace(0.01, 0.04, 10)
 
 h_v, k_v, r_e_v, r_w_v = np.meshgrid(h, k, r_e, r_w)
 
@@ -89,30 +88,33 @@ logger.info("Done")
 # y = scale_y.fit_transform(y)
 # print(x.min(), x.max(), y.min(), y.max())
 
+
+initializer = tf.keras.initializers.GlorotNormal()
+
 # design the neural network model
 model = Sequential(
     [
-        # tf.keras.layers.BatchNormalization(),
         tf.keras.Input(shape=(4,)),
-        Dense(10, activation="relu", kernel_initializer="he_uniform"),
-        Dense(10, activation="relu", kernel_initializer="he_uniform"),
-        Dense(10, activation="relu", kernel_initializer="he_uniform"),
-        Dense(10, activation="relu", kernel_initializer="he_uniform"),
-        Dense(10, activation="relu", kernel_initializer="he_uniform"),
+        # tf.keras.layers.BatchNormalization(),
+        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
+        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
+        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
+        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
+        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
         Dense(1),
     ]
 )
 
 # define the loss function and optimization algorithm
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.1, decay_steps=100000, decay_rate=0.96, staircase=True
+    0.1, decay_steps=1000, decay_rate=0.96, staircase=False
 )
 
 model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule))
 
 # ft the model on the training dataset
 logger.info("Train model")
-model.fit(x, y, epochs=200, batch_size=100, verbose=1)
+model.fit(x, y, epochs=100, batch_size=100, verbose=1)
 
 # make predictions for the input data
 yhat = model.predict(x)
