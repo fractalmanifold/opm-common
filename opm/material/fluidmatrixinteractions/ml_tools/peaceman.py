@@ -10,7 +10,7 @@ from matplotlib import pyplot
 from numpy import asarray
 
 # from sklearn.metrics import mean_squared_error
-# from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 
 logger = logging.getLogger(__name__)
 
@@ -51,37 +51,39 @@ logger.info("Prepare dataset")
 # # r_w = np.linspace(0.01, 0.04, 10)
 # r_w = np.array(0.0762)
 
+# scale h
+h_plot = np.array([10e-12])
+scale_h = MinMaxScaler()
+h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze(axis=0)
 
-h = np.array([0.24])
-# k = np.linspace(0, 1, 100)
-k = np.linspace(0, 1, 100)
-r_e = np.linspace(10, 300, 300)
-# r_e = np.array([0.1])
-r_w = np.array([0.01])
+# scale k
+k_plot = np.linspace(1, 20, 100)
+scale_k = MinMaxScaler()
+k = scale_k.fit_transform(k_plot.reshape(-1, 1)).squeeze()
 
-
-h = np.array([1])
-k = np.logspace(-2, 0, 100)
-# k = np.array(0.1)
-# # TODO: Implement some more sophisticated logic s.t. :math:`r_e\in[0,h]` is uniformly
-# # distributed.
-r_e = np.linspace(0.05, 0.5, 300)
-r_w = np.array([0.01])
-# r_w = np.linspace(0.01, 0.04, 10)
-
+# # scale r_e
+r_e_plot = np.linspace(10, 300, 300)
+scale_r_e = MinMaxScaler((0.02, 0.5))
+r_e = scale_r_e.fit_transform(r_e_plot.reshape(-1, 1)).squeeze()
+r_w = np.array([0.0762])
 h_v, k_v, r_e_v, r_w_v = np.meshgrid(h, k, r_e, r_w)
+h_plot_v, k_plot_v, r_e_plot_v, r_w_v = np.meshgrid(h_plot, k_plot, r_e_plot, r_w)
 
 x = np.stack([h_v.flatten(), k_v.flatten(), r_e_v.flatten(), r_w_v.flatten()], axis=-1)
+
 y = computePeaceman_np(
-    h_v.flatten()[..., None],
-    k_v.flatten()[..., None],
-    r_e_v.flatten()[..., None],
+    h_plot_v.flatten()[..., None],
+    k_plot_v.flatten()[..., None],
+    r_e_plot_v.flatten()[..., None],
     r_w_v.flatten()[..., None],
 )
+scale_y = MinMaxScaler()
+y_scaled = scale_y.fit_transform(y)
+
 logger.info("Done")
 
 # print(x.min(), x.max(), y.min(), y.max())
-# # separately scale the input and output variables
+# # scale r_e
 # scale_x = MinMaxScaler()
 # x = scale_x.fit_transform(x)
 # scale_y = MinMaxScaler()
@@ -96,11 +98,11 @@ model = Sequential(
     [
         tf.keras.Input(shape=(4,)),
         # tf.keras.layers.BatchNormalization(),
-        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
-        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
-        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
-        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
-        Dense(10, activation="sigmoid", kernel_initializer="he_uniform"),
+        Dense(10, activation="sigmoid", kernel_initializer="glorot_normal"),
+        Dense(10, activation="sigmoid", kernel_initializer="glorot_normal"),
+        Dense(10, activation="sigmoid", kernel_initializer="glorot_normal"),
+        Dense(10, activation="sigmoid", kernel_initializer="glorot_normal"),
+        Dense(10, activation="sigmoid", kernel_initializer="glorot_normal"),
         Dense(1),
     ]
 )
@@ -114,12 +116,12 @@ model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=lr_sc
 
 # ft the model on the training dataset
 logger.info("Train model")
-model.fit(x, y, epochs=100, batch_size=100, verbose=1)
+model.fit(x, y_scaled, epochs=25, batch_size=100, verbose=1)
 
 # make predictions for the input data
 yhat = model.predict(x)
 # inverse transforms
-# x_plot = scale_x.inverse_transform(x)
+# r_e_plot = scale_r_e.inverse_transform(r_e.reshape(-1, 1)).squeeze()
 # y_plot = scale_y.inverse_transform(y)
 # yhat_plot = scale_y.inverse_transform(yhat)
 # report model error
@@ -148,27 +150,29 @@ logger.info(f"MSE: {mse(y, yhat).numpy():.3f}")
 try:
     pyplot.figure()
     pyplot.plot(
-        r_e,
+        r_e_plot,
         computePeaceman_np(
-            np.full_like(r_e, h[0]),
-            np.full_like(r_e, k[0]),
-            r_e,
+            np.full_like(r_e, h_plot[0]),
+            np.full_like(r_e, k_plot[0]),
+            r_e_plot,
             np.full_like(r_e, r_w[0]),
         ),
         label="Actual",
     )
     # plot x vs yhat
     pyplot.plot(
-        r_e,
-        model(
-            np.stack(
-                [
-                    np.full_like(r_e, h[0]),
-                    np.full_like(r_e, k[0]),
-                    r_e,
-                    np.full_like(r_e, r_w[0]),
-                ],
-                axis=-1,
+        r_e_plot,
+        scale_y.inverse_transform(
+            model(
+                np.stack(
+                    [
+                        np.full_like(r_e, h[0]),
+                        np.full_like(r_e, k[0]),
+                        r_e,
+                        np.full_like(r_e, r_w[0]),
+                    ],
+                    axis=-1,
+                )
             )
         ),
         label="Predicted",
@@ -189,11 +193,11 @@ except Exception as e:
 try:
     pyplot.figure()
     pyplot.plot(
-        h,
+        h_plot,
         computePeaceman_np(
-            h,
-            np.full_like(h, k[0]),
-            np.full_like(h, r_e[0]),
+            h_plot,
+            np.full_like(h, k_plot[0]),
+            np.full_like(h, r_e_plot[0]),
             np.full_like(h, r_w[0]),
         ),
         label="Actual",
@@ -201,15 +205,17 @@ try:
     # plot x vs yhat
     pyplot.plot(
         h,
-        model(
-            np.stack(
-                [
-                    h,
-                    np.full_like(h, k[0]),
-                    np.full_like(h, r_e[0]),
-                    np.full_like(h, r_w[0]),
-                ],
-                axis=-1,
+        scale_y.inverse_transform(
+            model(
+                np.stack(
+                    [
+                        h_plot,
+                        np.full_like(h, k[0]),
+                        np.full_like(h, r_e[0]),
+                        np.full_like(h, r_w[0]),
+                    ],
+                    axis=-1,
+                )
             )
         ),
         label="Predicted",
@@ -229,27 +235,29 @@ except Exception as e:
 try:
     pyplot.figure()
     pyplot.plot(
-        k,
+        k_plot,
         computePeaceman_np(
-            np.full_like(k, h[0]),
-            k,
-            np.full_like(k, r_e[0]),
+            np.full_like(k, h_plot[0]),
+            k_plot,
+            np.full_like(k, r_e_plot[0]),
             np.full_like(k, r_w[0]),
         ),
         label="Actual",
     )
     # plot x vs yhat
     pyplot.plot(
-        k,
-        model(
-            np.stack(
-                [
-                    np.full_like(k, h[0]),
-                    k,
-                    np.full_like(k, r_e[0]),
-                    np.full_like(k, r_w[0]),
-                ],
-                axis=-1,
+        k_plot,
+        scale_y.inverse_transform(
+            model(
+                np.stack(
+                    [
+                        np.full_like(k, h[0]),
+                        k,
+                        np.full_like(k, r_e[0]),
+                        np.full_like(k, r_w[0]),
+                    ],
+                    axis=-1,
+                )
             )
         ),
         label="Predicted",
@@ -271,9 +279,9 @@ try:
     pyplot.plot(
         r_w,
         computePeaceman_np(
-            np.full_like(r_w, h[0]),
-            np.full_like(r_w, k[0]),
-            np.full_like(r_w, r_e[0]),
+            np.full_like(r_w, h_plot[0]),
+            np.full_like(r_w, k_plot[0]),
+            np.full_like(r_w, r_e_plot[0]),
             r_w,
         ),
         label="Actual",
@@ -281,15 +289,17 @@ try:
     # plot x vs yhat
     pyplot.plot(
         r_w,
-        model(
-            np.stack(
-                [
-                    np.full_like(r_w, h[0]),
-                    np.full_like(r_w, k[0]),
-                    np.full_like(r_w, r_e[0]),
-                    r_w,
-                ],
-                axis=-1,
+        scale_y.inverse_transform(
+            model(
+                np.stack(
+                    [
+                        np.full_like(r_w, h[0]),
+                        np.full_like(r_w, k[0]),
+                        np.full_like(r_w, r_e[0]),
+                        r_w,
+                    ],
+                    axis=-1,
+                )
             )
         ),
         label="Predicted",
