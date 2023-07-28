@@ -1,3 +1,4 @@
+import csv
 import logging
 import math
 
@@ -40,29 +41,21 @@ computePeaceman_np = np.vectorize(computePeaceman)
 
 logger.info("Prepare dataset")
 
-# # h = np.linspace(0.1, 1, 100)
-# h = np.array(15.24)
-# # k = np.logspace(-2, 0, 100)
-# k = np.array(3.00814e-12)
-# # k = np.array(3.00814e-12)
-# # # TODO: Implement some more sophisticated logic s.t. :math:`r_e\in[0,h]` is uniformly
-# # # distributed.
-# r_e = np.linspace(1, 170, 300)
-# # r_w = np.linspace(0.01, 0.04, 10)
-# r_w = np.array(0.0762)
-
 # scale h
-h_plot = np.array([10e-12])
+h_plot = np.linspace(1, 20, 20)
+# h_plot = np.array([1e-12])
 scale_h = MinMaxScaler()
-h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze(axis=0)
+# h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze(axis=0)
+h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze()
 
 # scale k
-k_plot = np.linspace(1, 20, 100)
+k_plot = np.linspace(1e-13, 1e-11, 20)
 scale_k = MinMaxScaler()
 k = scale_k.fit_transform(k_plot.reshape(-1, 1)).squeeze()
 
 # # scale r_e
-r_e_plot = np.linspace(10, 300, 300)
+# r_e_plot = np.logspace(math.log(10), math.log(400), 300)
+r_e_plot = np.linspace(10, 300, 600)
 scale_r_e = MinMaxScaler((0.02, 0.5))
 r_e = scale_r_e.fit_transform(r_e_plot.reshape(-1, 1)).squeeze()
 r_w = np.array([0.0762])
@@ -82,16 +75,22 @@ y_scaled = scale_y.fit_transform(y)
 
 logger.info("Done")
 
-# print(x.min(), x.max(), y.min(), y.max())
-# # scale r_e
-# scale_x = MinMaxScaler()
-# x = scale_x.fit_transform(x)
-# scale_y = MinMaxScaler()
-# y = scale_y.fit_transform(y)
-# print(x.min(), x.max(), y.min(), y.max())
+# Write scaling info to file
+with open("scales.csv", "w", newline="") as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=["variable", "min", "max"])
+    writer.writeheader()
+    writer.writerow(
+        {"variable": "h", "min": f"{h_plot.min()}", "max": f"{h_plot.max()}"}
+    )
+    writer.writerow(
+        {"variable": "k", "min": f"{k_plot.min()}", "max": f"{k_plot.max()}"}
+    )
+    writer.writerow(
+        {"variable": "r_e", "min": f"{r_e_plot.min()}", "max": f"{r_e_plot.max()}"}
+    )
+    writer.writerow({"variable": "r_w", "min": f"{r_w.min()}", "max": f"{r_w.max()}"})
+    writer.writerow({"variable": "y", "min": f"{y.min()}", "max": f"{y.max()}"})
 
-
-initializer = tf.keras.initializers.GlorotNormal()
 
 # design the neural network model
 model = Sequential(
@@ -108,15 +107,20 @@ model = Sequential(
 )
 
 # define the loss function and optimization algorithm
-lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.1, decay_steps=1000, decay_rate=0.96, staircase=False
-)
+# lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+#     0.1, decay_steps=1000, decay_rate=0.96, staircase=False
+# )
+# model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule))
 
-model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule))
+reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+    monitor="loss", factor=0.1, patience=10, verbose=1, min_delta=1e-10
+)
+model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=0.1))
+
 
 # ft the model on the training dataset
 logger.info("Train model")
-model.fit(x, y_scaled, epochs=25, batch_size=100, verbose=1)
+model.fit(x, y_scaled, epochs=200, batch_size=100, verbose=1, callbacks=reduce_lr)
 
 # make predictions for the input data
 yhat = model.predict(x)
@@ -147,46 +151,47 @@ logger.info(f"MSE: {mse(y, yhat).numpy():.3f}")
 
 # Plot w.r.t. r_e
 # plot x vs y
-try:
-    pyplot.figure()
-    pyplot.plot(
-        r_e_plot,
-        computePeaceman_np(
-            np.full_like(r_e, h_plot[0]),
-            np.full_like(r_e, k_plot[0]),
+for i in [0, 5, 10, 15]:
+    try:
+        pyplot.figure()
+        pyplot.plot(
             r_e_plot,
-            np.full_like(r_e, r_w[0]),
-        ),
-        label="Actual",
-    )
-    # plot x vs yhat
-    pyplot.plot(
-        r_e_plot,
-        scale_y.inverse_transform(
-            model(
-                np.stack(
-                    [
-                        np.full_like(r_e, h[0]),
-                        np.full_like(r_e, k[0]),
-                        r_e,
-                        np.full_like(r_e, r_w[0]),
-                    ],
-                    axis=-1,
+            computePeaceman_np(
+                np.full_like(r_e, h_plot[i]),
+                np.full_like(r_e, k_plot[i]),
+                r_e_plot,
+                np.full_like(r_e, r_w[0]),
+            ),
+            label="Actual",
+        )
+        # plot x vs yhat
+        pyplot.plot(
+            r_e_plot,
+            scale_y.inverse_transform(
+                model(
+                    np.stack(
+                        [
+                            np.full_like(r_e, h[i]),
+                            np.full_like(r_e, k[i]),
+                            r_e,
+                            np.full_like(r_e, r_w[0]),
+                        ],
+                        axis=-1,
+                    )
                 )
-            )
-        ),
-        label="Predicted",
-    )
-    pyplot.title("Input (x) versus Output (y)")
-    pyplot.xlabel("$r_e$")
-    pyplot.ylabel(r"$WI\cdot\frac{\mu}{\rho}$")
-    pyplot.legend()
-    pyplot.savefig("plt_r_e_vs_WI.png", dpi=1200)
-    pyplot.show()
-    pyplot.close()
-except Exception as e:
-    print(e)
-    pass
+            ),
+            label="Predicted",
+        )
+        pyplot.title("Input (x) versus Output (y)")
+        pyplot.xlabel("$r_e$")
+        pyplot.ylabel(r"$WI\cdot\frac{\mu}{\rho}$")
+        pyplot.legend()
+        pyplot.savefig(f"plt_r_e_vs_WI_{i}.png", dpi=1200)
+        pyplot.show()
+        pyplot.close()
+    except Exception as e:
+        print(e)
+        pass
 
 # Plot w.r.t. h
 # plot x vs y
@@ -204,12 +209,12 @@ try:
     )
     # plot x vs yhat
     pyplot.plot(
-        h,
+        h_plot,
         scale_y.inverse_transform(
             model(
                 np.stack(
                     [
-                        h_plot,
+                        h,
                         np.full_like(h, k[0]),
                         np.full_like(h, r_e[0]),
                         np.full_like(h, r_w[0]),
@@ -313,3 +318,10 @@ try:
     pyplot.close()
 except Exception as e:
     pass
+
+# save model
+model.save_weights("modelPeaceman.tf")
+
+from kerasify import export_model
+
+export_model(model, "example.modelPeaceman")
