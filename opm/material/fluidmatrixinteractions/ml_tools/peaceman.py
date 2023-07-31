@@ -47,17 +47,21 @@ h_plot = np.linspace(1, 20, 20)
 scale_h = MinMaxScaler()
 # h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze(axis=0)
 h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze()
-
+#param_h = scale_h.get_params()
+#print(scale_h.data_max_)
 # scale k
 k_plot = np.linspace(1e-13, 1e-11, 20)
 scale_k = MinMaxScaler()
 k = scale_k.fit_transform(k_plot.reshape(-1, 1)).squeeze()
-
+#param_k = scale_k.get_params()
+#print(param_k)
 # # scale r_e
 # r_e_plot = np.logspace(math.log(10), math.log(400), 300)
 r_e_plot = np.linspace(10, 300, 600)
-scale_r_e = MinMaxScaler((0.02, 0.5))
+#scale_r_e = MinMaxScaler((0.02, 0.5))
+scale_r_e = MinMaxScaler()
 r_e = scale_r_e.fit_transform(r_e_plot.reshape(-1, 1)).squeeze()
+#param_r_e = scale_r_e.get_params()
 r_w = np.array([0.0762])
 h_v, k_v, r_e_v, r_w_v = np.meshgrid(h, k, r_e, r_w)
 h_plot_v, k_plot_v, r_e_plot_v, r_w_v = np.meshgrid(h_plot, k_plot, r_e_plot, r_w)
@@ -120,7 +124,7 @@ model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(learning_rate=0.1))
 
 # ft the model on the training dataset
 logger.info("Train model")
-model.fit(x, y_scaled, epochs=200, batch_size=100, verbose=1, callbacks=reduce_lr)
+model.fit(x, y_scaled, epochs=5, batch_size=100, verbose=1, callbacks=reduce_lr)
 
 # make predictions for the input data
 yhat = model.predict(x)
@@ -133,6 +137,40 @@ mse = tf.keras.losses.MeanSquaredError()
 logger.info(f"MSE: {mse(y, yhat).numpy():.3f}")
 
 
+re3 = 60.3473 
+rw3 = 0.0762
+h3 = 6.096 
+k3 = 9.86923e-14
+
+wi = computePeaceman(h3 , k3 , re3, rw3)
+
+# scale h
+h_plot2 = np.array(h3)
+# h_plot = np.array([1e-12])
+#scale_h = MinMaxScaler()
+#scale_h.set_params(param_h)
+# h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze(axis=0)
+h2 = scale_h.transform(h_plot2.reshape(-1, 1)).squeeze()
+
+# scale k
+k_plot2 = np.array(k3)
+#scale_k = MinMaxScaler()
+#scale_k.set_params(param_k)
+k2 = scale_k.transform(k_plot2.reshape(-1, 1)).squeeze()
+
+# # scale r_e
+# r_e_plot = np.logspace(math.log(10), math.log(400), 300)
+r_e_plot2 = np.array(re3)
+#scale_r_e = MinMaxScaler((0.02, 0.5))
+#scale_r_e.set_params(param_r_e)
+r_e2 = scale_r_e.transform(r_e_plot2.reshape(-1, 1)).squeeze()
+r_w2 = np.array(rw3)
+h_v2, k_v2, r_e_v2, r_w_v2 = np.meshgrid(h2, k2, r_e2, r_w2)
+h_plot_v2, k_plot_v2, r_e_plot_v2, r_w_v2 = np.meshgrid(h_plot2, k_plot2, r_e_plot2, r_w2)
+x2 = np.stack([h_v2.flatten(), k_v2.flatten(), r_e_v2.flatten(), r_w_v2.flatten()], axis=-1)
+yhat2 = model.predict(x2)
+print(r_e2, r_w2, h2, k2)
+print(wi, yhat2, scale_y.inverse_transform(yhat2))
 # df = pd.DataFrame({"Id": x_plot[:, 0], "Amount": yhat_plot[:, 0].astype(float)})
 
 
