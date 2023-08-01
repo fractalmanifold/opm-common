@@ -23,7 +23,7 @@ bool ReadUnsignedInt(std::ifstream* file, unsigned int* i) {
     return true;
 }
 
-bool ReadFloat(std::ifstream* file, Evaluation* f) {
+bool ReadFloat(std::ifstream* file, float* f) {
     KASSERT(file, "Invalid file stream");
     KASSERT(f, "Invalid pointer");
 
@@ -33,7 +33,7 @@ bool ReadFloat(std::ifstream* file, Evaluation* f) {
     return true;
 }
 
-bool ReadFloats(std::ifstream* file, Evaluation* f, size_t n) {
+bool ReadFloats(std::ifstream* file, float* f, size_t n) {
     KASSERT(file, "Invalid file stream");
     KASSERT(f, "Invalid pointer");
 
@@ -77,7 +77,7 @@ bool KerasLayerActivation::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerActivation::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerActivation::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -164,7 +164,7 @@ bool KerasLayerDense::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerDense::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerDense::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
     KASSERT(in->dims_.size() <= 2, "Invalid input dimensions");
@@ -174,7 +174,7 @@ bool KerasLayerDense::Apply(Tensor* in, Tensor* out) {
                 in->dims_[1], weights_.dims_[0]);
     }
 
-    Tensor tmp(weights_.dims_[1]);
+    Tensor<float> tmp(weights_.dims_[1]);
 
     for (int i = 0; i < weights_.dims_[0]; i++) {
         for (int j = 0; j < weights_.dims_[1]; j++) {
@@ -228,7 +228,7 @@ bool KerasLayerConvolution2d::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerConvolution2d::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerConvolution2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -240,7 +240,7 @@ bool KerasLayerConvolution2d::Apply(Tensor* in, Tensor* out) {
     int st_nk = (weights_.dims_[3] - 1) / 2;
     int st_pk = (weights_.dims_[3]) / 2;
 
-    Tensor tmp(weights_.dims_[0], in->dims_[1] - st_nj - st_pj,
+    Tensor<float> tmp(weights_.dims_[0], in->dims_[1] - st_nj - st_pj,
                in->dims_[2] - st_nk - st_pk);
 
     // Iterate over each kernel.
@@ -253,7 +253,7 @@ bool KerasLayerConvolution2d::Apply(Tensor* in, Tensor* out) {
                     // Iterate over kernel.
                     for (int k = 0; k < weights_.dims_[2]; k++) {
                         for (int l = 0; l < weights_.dims_[3]; l++) {
-                            const Evaluation& weight = weights_(i, j, k, l);
+                            const float& weight = weights_(i, j, k, l);
                             const Evaluation& value =
                                 (*in)(j, tj - st_nj + k, tk - st_nk + l);
 
@@ -282,7 +282,7 @@ bool KerasLayerFlatten::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerFlatten::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerFlatten::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -300,7 +300,7 @@ bool KerasLayerElu::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerElu::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerElu::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -324,13 +324,13 @@ bool KerasLayerMaxPooling2d::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerMaxPooling2d::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerMaxPooling2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
     KASSERT(in->dims_.size() == 3, "Input must have 3 dimensions");
 
-    Tensor tmp(in->dims_[0], in->dims_[1] / pool_size_j_,
+    Tensor<float> tmp(in->dims_[0], in->dims_[1] / pool_size_j_,
                in->dims_[2] / pool_size_k_);
 
     for (int i = 0; i < tmp.dims_[0]; i++) {
@@ -505,7 +505,7 @@ bool KerasLayerLSTM::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerLSTM::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerLSTM::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     // Assume bo always keeps the output shape and we will always receive one
     // single sample.
     int outputDim = bo_.dims_[1];
@@ -563,7 +563,7 @@ bool KerasLayerEmbedding::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerEmbedding::Apply(Tensor* in, Tensor* out) {
+bool KerasLayerEmbedding::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     int output_rows = in->dims_[1];
     int output_cols = weights_.dims_[1];
     out->dims_ = {output_rows, output_cols};
@@ -667,8 +667,8 @@ bool KerasModel::LoadModel(const std::string& filename) {
     return true;
 }
 
-bool KerasModel::Apply(Tensor* in, Tensor* out) {
-    Tensor temp_in, temp_out;
+bool KerasModel::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+    Tensor<Evaluation> temp_in, temp_out;
 
     for (unsigned int i = 0; i < layers_.size(); i++) {
         if (i == 0) {

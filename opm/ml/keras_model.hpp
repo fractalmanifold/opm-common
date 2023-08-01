@@ -14,6 +14,7 @@
 // typedef double Scalar;
 
 //typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
+//typedef float Evaluation;
 typedef float Evaluation;
 namespace Opm {
 
@@ -43,6 +44,7 @@ namespace Opm {
 #define KDEBUG(x, ...) ;
 #endif
 
+template<class Foo>
 class Tensor {
   public:
     Tensor() {}
@@ -85,14 +87,14 @@ class Tensor {
         dims_ = {elements};
     }
 
-    inline Evaluation& operator()(int i) {
+    inline Foo& operator()(int i) {
         KDEBUG(dims_.size() == 1, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
 
         return data_[i];
     }
 
-    inline Evaluation& operator()(int i, int j) {
+    inline Foo& operator()(int i, int j) {
         KDEBUG(dims_.size() == 2, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -100,7 +102,7 @@ class Tensor {
         return data_[dims_[1] * i + j];
     }
 
-    inline Evaluation operator()(int i, int j) const {
+    inline Foo operator()(int i, int j) const {
         KDEBUG(dims_.size() == 2, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -108,7 +110,7 @@ class Tensor {
         return data_[dims_[1] * i + j];
     }
 
-    inline Evaluation& operator()(int i, int j, int k) {
+    inline Foo& operator()(int i, int j, int k) {
         KDEBUG(dims_.size() == 3, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -117,7 +119,7 @@ class Tensor {
         return data_[dims_[2] * (dims_[1] * i + j) + k];
     }
 
-    inline Evaluation& operator()(int i, int j, int k, int l) {
+    inline Foo& operator()(int i, int j, int k, int l) {
         KDEBUG(dims_.size() == 4, "Invalid indexing for tensor");
         KDEBUG(i < dims_[0] && i >= 0, "Invalid i: %d (max %d)", i, dims_[0]);
         KDEBUG(j < dims_[1] && j >= 0, "Invalid j: %d (max %d)", j, dims_[1]);
@@ -127,7 +129,7 @@ class Tensor {
         return data_[dims_[3] * (dims_[2] * (dims_[1] * i + j) + k) + l];
     }
 
-    inline void Fill(Evaluation value) {
+    inline void Fill(Foo value) {
         std::fill(data_.begin(), data_.end(), value);
     }
 
@@ -137,14 +139,14 @@ class Tensor {
             std::vector<int>(dims_.begin() + 1, dims_.end());
         int pack_size = std::accumulate(pack_dims.begin(), pack_dims.end(), 0);
 
-        std::vector<Evaluation>::const_iterator first =
+        std::vector<Foo>::const_iterator first =
             data_.begin() + (row * pack_size);
-        std::vector<Evaluation>::const_iterator last =
+        std::vector<Foo>::const_iterator last =
             data_.begin() + (row + 1) * pack_size;
 
         Tensor x = Tensor();
         x.dims_ = pack_dims;
-        x.data_ = std::vector<Evaluation>(first, last);
+        x.data_ = std::vector<Foo>(first, last);
 
         return x;
     }
@@ -266,7 +268,7 @@ class Tensor {
     // }
 
     std::vector<int> dims_;
-    std::vector<Evaluation> data_;
+    std::vector<Foo> data_;
 };
 
 class KerasLayer {
@@ -277,7 +279,7 @@ class KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file) = 0;
 
-    virtual bool Apply(Tensor* in, Tensor* out) = 0;
+    virtual bool Apply(Tensor<Evaluation* in, Evaluation* out) = 0;
 };
 
 class KerasLayerActivation : public KerasLayer {
@@ -297,7 +299,7 @@ class KerasLayerActivation : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
     ActivationType activation_type_;
@@ -311,11 +313,11 @@ class KerasLayerDense : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
-    Tensor weights_;
-    Tensor biases_;
+    Tensor<float> weights_;
+    Tensor<float> biases_;
 
     KerasLayerActivation activation_;
 };
@@ -328,7 +330,7 @@ class KerasLayerConvolution2d : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
     Tensor weights_;
@@ -345,7 +347,7 @@ class KerasLayerFlatten : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
 };
@@ -358,7 +360,7 @@ class KerasLayerElu : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
     Evaluation alpha_;
@@ -372,7 +374,7 @@ class KerasLayerMaxPooling2d : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
     unsigned int pool_size_j_;
@@ -387,23 +389,23 @@ class KerasLayerLSTM : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
     bool Step(Tensor* x, Tensor* out, Tensor* ht_1, Tensor* ct_1);
 
-    Tensor Wi_;
-    Tensor Ui_;
-    Tensor bi_;
-    Tensor Wf_;
-    Tensor Uf_;
-    Tensor bf_;
-    Tensor Wc_;
-    Tensor Uc_;
-    Tensor bc_;
-    Tensor Wo_;
-    Tensor Uo_;
-    Tensor bo_;
+    Tensor<float> Wi_;
+    Tensor<float> Ui_;
+    Tensor<float> bi_;
+    Tensor<float> Wf_;
+    Tensor<float> Uf_;
+    Tensor<float> bf_;
+    Tensor<float> Wc_;
+    Tensor<float> Uc_;
+    Tensor<float> bc_;
+    Tensor<float> Wo_;
+    Tensor<float> Uo_;
+    Tensor<float> bo_;
 
     KerasLayerActivation innerActivation_;
     KerasLayerActivation activation_;
@@ -418,10 +420,10 @@ class KerasLayerEmbedding : public KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
-    Tensor weights_;
+    Tensor<float> weights_;
 };
 
 class KerasModel {
@@ -447,7 +449,7 @@ class KerasModel {
 
     virtual bool LoadModel(const std::string& filename);
 
-    virtual bool Apply(Tensor* in, Tensor* out);
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
     std::vector<KerasLayer*> layers_;
