@@ -14,7 +14,7 @@
 // typedef double Scalar;
 
 //typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
-typedef double Evaluation;
+typedef float Evaluation;
 namespace Opm {
 
 #define KASSERT(x, ...)                                                        \
