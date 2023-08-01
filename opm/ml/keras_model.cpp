@@ -571,9 +571,9 @@ bool KerasLayerEmbedding::Apply(Tensor* in, Tensor* out) {
 
     std::for_each(in->data_.begin(), in->data_.end(), [=](Evaluation i) {
         std::vector<Evaluation>::const_iterator first =
-            this->weights_.data_.begin() + (i.value() * output_cols);
+            this->weights_.data_.begin() + (getValue(i) * output_cols);
         std::vector<Evaluation>::const_iterator last =
-            this->weights_.data_.begin() + (i.value() + 1) * output_cols;
+            this->weights_.data_.begin() + (getValue(i) + 1) * output_cols;
 
         out->data_.insert(out->data_.end(), first, last);
     });

@@ -43,7 +43,9 @@ logger.info("Prepare dataset")
 
 # scale h
 h_plot = np.linspace(1, 20, 20)
-# h_plot = np.array([1e-12])
+h3 = 6.096 
+k3 = 9.86923e-14
+#h_plot = np.array([h3])
 scale_h = MinMaxScaler()
 # h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze(axis=0)
 h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze()
@@ -51,6 +53,7 @@ h = scale_h.fit_transform(h_plot.reshape(-1, 1)).squeeze()
 #print(scale_h.data_max_)
 # scale k
 k_plot = np.linspace(1e-13, 1e-11, 20)
+#k_plot = np.array([k3])
 scale_k = MinMaxScaler()
 k = scale_k.fit_transform(k_plot.reshape(-1, 1)).squeeze()
 #param_k = scale_k.get_params()
@@ -139,8 +142,11 @@ logger.info(f"MSE: {mse(y, yhat).numpy():.3f}")
 
 re3 = 60.3473 
 rw3 = 0.0762
-h3 = 6.096 
-k3 = 9.86923e-14
+h3 = 15.24
+k3 = 1.97385e-13
+
+#60.3473 0.0762 15.24 1.97385e-13
+
 
 wi = computePeaceman(h3 , k3 , re3, rw3)
 
@@ -358,7 +364,7 @@ except Exception as e:
     pass
 
 # save model
-model.save_weights("modelPeaceman.tf")
+#model.save_weights("modelPeaceman.tf")
 
 from kerasify import export_model
 
