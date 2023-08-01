@@ -174,7 +174,7 @@ bool KerasLayerDense::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
                 in->dims_[1], weights_.dims_[0]);
     }
 
-    Tensor<float> tmp(weights_.dims_[1]);
+    Tensor<Evaluation> tmp(weights_.dims_[1]);
 
     for (int i = 0; i < weights_.dims_[0]; i++) {
         for (int j = 0; j < weights_.dims_[1]; j++) {
@@ -191,7 +191,7 @@ bool KerasLayerDense::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     return true;
 }
 
-bool KerasLayerConvolution2d::LoadLayer(std::ifstream* file) {
+/* bool KerasLayerConvolution2d::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     unsigned int weights_i = 0;
@@ -276,7 +276,7 @@ bool KerasLayerConvolution2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* 
 
     return true;
 }
-
+ */
 bool KerasLayerFlatten::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
     return true;
@@ -292,7 +292,7 @@ bool KerasLayerFlatten::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     return true;
 }
 
-bool KerasLayerElu::LoadLayer(std::ifstream* file) {
+/* bool KerasLayerElu::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     KASSERT(ReadFloat(file, &alpha_), "Failed to read alpha");
@@ -609,7 +609,7 @@ bool KerasLayerLSTM::Step(Tensor* x, Tensor* out, Tensor* ht_1, Tensor* ct_1) {
 
     return true;
 }
-
+ */
 bool KerasModel::LoadModel(const std::string& filename) {
     std::ifstream file(filename.c_str(), std::ios::binary);
     KASSERT(file.is_open(), "Unable to open file %s", filename.c_str());
@@ -628,25 +628,25 @@ bool KerasModel::LoadModel(const std::string& filename) {
             layer = new KerasLayerDense();
             break;
         case kConvolution2d:
-            layer = new KerasLayerConvolution2d();
+        //    layer = new KerasLayerConvolution2d();
             break;
         case kFlatten:
             layer = new KerasLayerFlatten();
             break;
         case kElu:
-            layer = new KerasLayerElu();
+        //    layer = new KerasLayerElu();
             break;
         case kActivation:
             layer = new KerasLayerActivation();
             break;
         case kMaxPooling2D:
-            layer = new KerasLayerMaxPooling2d();
+        //    layer = new KerasLayerMaxPooling2d();
             break;
         case kLSTM:
-            layer = new KerasLayerLSTM();
+        //    layer = new KerasLayerLSTM();
             break;
         case kEmbedding:
-            layer = new KerasLayerEmbedding();
+        //    layer = new KerasLayerEmbedding();
             break;
         default:
             break;

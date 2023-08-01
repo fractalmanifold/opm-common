@@ -13,9 +13,9 @@
 
 // typedef double Scalar;
 
-//typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
+typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
 //typedef float Evaluation;
-typedef float Evaluation;
+//typedef double Evaluation;
 namespace Opm {
 
 #define KASSERT(x, ...)                                                        \
@@ -139,9 +139,9 @@ class Tensor {
             std::vector<int>(dims_.begin() + 1, dims_.end());
         int pack_size = std::accumulate(pack_dims.begin(), pack_dims.end(), 0);
 
-        std::vector<Foo>::const_iterator first =
+        typename std::vector<Foo>::const_iterator first =
             data_.begin() + (row * pack_size);
-        std::vector<Foo>::const_iterator last =
+        typename std::vector<Foo>::const_iterator last =
             data_.begin() + (row + 1) * pack_size;
 
         Tensor x = Tensor();
@@ -279,7 +279,7 @@ class KerasLayer {
 
     virtual bool LoadLayer(std::ifstream* file) = 0;
 
-    virtual bool Apply(Tensor<Evaluation* in, Evaluation* out) = 0;
+    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) = 0;
 };
 
 class KerasLayerActivation : public KerasLayer {
@@ -322,7 +322,7 @@ class KerasLayerDense : public KerasLayer {
     KerasLayerActivation activation_;
 };
 
-class KerasLayerConvolution2d : public KerasLayer {
+/* class KerasLayerConvolution2d : public KerasLayer {
   public:
     KerasLayerConvolution2d() {}
 
@@ -337,7 +337,7 @@ class KerasLayerConvolution2d : public KerasLayer {
     Tensor biases_;
 
     KerasLayerActivation activation_;
-};
+}; */
 
 class KerasLayerFlatten : public KerasLayer {
   public:
@@ -352,7 +352,7 @@ class KerasLayerFlatten : public KerasLayer {
   private:
 };
 
-class KerasLayerElu : public KerasLayer {
+/* class KerasLayerElu : public KerasLayer {
   public:
     KerasLayerElu() : alpha_(1.0f) {}
 
@@ -424,7 +424,7 @@ class KerasLayerEmbedding : public KerasLayer {
 
   private:
     Tensor<float> weights_;
-};
+}; */
 
 class KerasModel {
   public:
