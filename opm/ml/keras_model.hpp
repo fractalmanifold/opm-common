@@ -325,7 +325,8 @@ class KerasLayerDense : public KerasLayer<Evaluation> {
     KerasLayerActivation<Evaluation> activation_;
 };
 
-/* class KerasLayerConvolution2d : public KerasLayer {
+template<class Evaluation>
+class KerasLayerConvolution2d: public KerasLayer<Evaluation> {
   public:
     KerasLayerConvolution2d() {}
 
@@ -336,11 +337,11 @@ class KerasLayerDense : public KerasLayer<Evaluation> {
     virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
-    Tensor weights_;
-    Tensor biases_;
+    Tensor<float> weights_;
+    Tensor<float> biases_;
 
-    KerasLayerActivation activation_;
-}; */
+    KerasLayerActivation<Evaluation> activation_;
+}; 
 
 template<class Evaluation>
 class KerasLayerFlatten : public KerasLayer<Evaluation> {
@@ -356,7 +357,8 @@ class KerasLayerFlatten : public KerasLayer<Evaluation> {
   private:
 };
 
-/* class KerasLayerElu : public KerasLayer {
+template<class Evaluation>
+class KerasLayerElu : public KerasLayer<Evaluation> {
   public:
     KerasLayerElu() : alpha_(1.0f) {}
 
@@ -370,7 +372,8 @@ class KerasLayerFlatten : public KerasLayer<Evaluation> {
     Evaluation alpha_;
 };
 
-class KerasLayerMaxPooling2d : public KerasLayer {
+template<class Evaluation>
+class KerasLayerMaxPooling2d : public KerasLayer<Evaluation> {
   public:
     KerasLayerMaxPooling2d() : pool_size_j_(0), pool_size_k_(0) {}
 
@@ -385,7 +388,8 @@ class KerasLayerMaxPooling2d : public KerasLayer {
     unsigned int pool_size_k_;
 };
 
-class KerasLayerLSTM : public KerasLayer {
+template<class Evaluation>
+class KerasLayerLSTM : public KerasLayer<Evaluation> {
   public:
     KerasLayerLSTM() : return_sequences_(false) {}
 
@@ -396,7 +400,7 @@ class KerasLayerLSTM : public KerasLayer {
     virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
-    bool Step(Tensor* x, Tensor* out, Tensor* ht_1, Tensor* ct_1);
+    bool Step(Tensor<Evaluation>* x, Tensor<Evaluation>* out, Tensor<Evaluation>* ht_1, Tensor<Evaluation>* ct_1);
 
     Tensor<float> Wi_;
     Tensor<float> Ui_;
@@ -411,12 +415,14 @@ class KerasLayerLSTM : public KerasLayer {
     Tensor<float> Uo_;
     Tensor<float> bo_;
 
-    KerasLayerActivation innerActivation_;
-    KerasLayerActivation activation_;
+    KerasLayerActivation<Evaluation> innerActivation_;
+    KerasLayerActivation<Evaluation> activation_;
     bool return_sequences_;
 };
 
-class KerasLayerEmbedding : public KerasLayer {
+
+template<class Evaluation>
+class KerasLayerEmbedding : public KerasLayer<Evaluation> {
   public:
     KerasLayerEmbedding() {}
 
@@ -428,7 +434,7 @@ class KerasLayerEmbedding : public KerasLayer {
 
   private:
     Tensor<float> weights_;
-}; */
+}; 
 
 template<class Evaluation>
 class KerasModel {

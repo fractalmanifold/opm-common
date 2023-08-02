@@ -195,7 +195,8 @@ bool KerasLayerDense<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluatio
     return true;
 }
 
-/* bool KerasLayerConvolution2d::LoadLayer(std::ifstream* file) {
+template<class Evaluation>
+bool KerasLayerConvolution2d<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     unsigned int weights_i = 0;
@@ -232,7 +233,8 @@ bool KerasLayerDense<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluatio
     return true;
 }
 
-bool KerasLayerConvolution2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerConvolution2d<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -244,7 +246,7 @@ bool KerasLayerConvolution2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* 
     int st_nk = (weights_.dims_[3] - 1) / 2;
     int st_pk = (weights_.dims_[3]) / 2;
 
-    Tensor<float> tmp(weights_.dims_[0], in->dims_[1] - st_nj - st_pj,
+    Tensor<Evaluation> tmp(weights_.dims_[0], in->dims_[1] - st_nj - st_pj,
                in->dims_[2] - st_nk - st_pk);
 
     // Iterate over each kernel.
@@ -280,7 +282,7 @@ bool KerasLayerConvolution2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* 
 
     return true;
 }
- */
+ 
 template<class Evaluation>
 bool KerasLayerFlatten<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
@@ -298,7 +300,8 @@ bool KerasLayerFlatten<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluat
     return true;
 }
 
-/* bool KerasLayerElu::LoadLayer(std::ifstream* file) {
+template<class Evaluation>
+bool KerasLayerElu<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     KASSERT(ReadFloat(file, &alpha_), "Failed to read alpha");
@@ -306,7 +309,8 @@ bool KerasLayerFlatten<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluat
     return true;
 }
 
-bool KerasLayerElu::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerElu<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -321,7 +325,8 @@ bool KerasLayerElu::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     return true;
 }
 
-bool KerasLayerMaxPooling2d::LoadLayer(std::ifstream* file) {
+template<class Evaluation>
+bool KerasLayerMaxPooling2d<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     KASSERT(ReadUnsignedInt(file, &pool_size_j_), "Expected pool size j");
@@ -330,13 +335,14 @@ bool KerasLayerMaxPooling2d::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerMaxPooling2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerMaxPooling2d<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
     KASSERT(in->dims_.size() == 3, "Input must have 3 dimensions");
 
-    Tensor<float> tmp(in->dims_[0], in->dims_[1] / pool_size_j_,
+    Tensor<Evaluation> tmp(in->dims_[0], in->dims_[1] / pool_size_j_,
                in->dims_[2] / pool_size_k_);
 
     for (int i = 0; i < tmp.dims_[0]; i++) {
@@ -368,7 +374,49 @@ bool KerasLayerMaxPooling2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* o
     return true;
 }
 
-bool KerasLayerLSTM::LoadLayer(std::ifstream* file) {
+
+
+template<class Evaluation>
+bool KerasLayerEmbedding<Evaluation>::LoadLayer(std::ifstream* file) {
+    KASSERT(file, "Invalid file stream");
+
+    unsigned int weights_rows = 0;
+    KASSERT(ReadUnsignedInt(file, &weights_rows), "Expected weight rows");
+    KASSERT(weights_rows > 0, "Invalid weights # rows");
+
+    unsigned int weights_cols = 0;
+    KASSERT(ReadUnsignedInt(file, &weights_cols), "Expected weight cols");
+    KASSERT(weights_cols > 0, "Invalid weights shape");
+
+    weights_.Resize(weights_rows, weights_cols);
+    KASSERT(
+        ReadFloats(file, weights_.data_.data(), weights_rows * weights_cols),
+        "Expected weights");
+
+    return true;
+}
+
+template<class Evaluation>
+bool KerasLayerEmbedding<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+    int output_rows = in->dims_[1];
+    int output_cols = weights_.dims_[1];
+    out->dims_ = {output_rows, output_cols};
+    out->data_.reserve(output_rows * output_cols);
+
+    std::for_each(in->data_.begin(), in->data_.end(), [=](Evaluation i) {
+        typename std::vector<Evaluation>::const_iterator first =
+            this->weights_.data_.begin() + (getValue(i) * output_cols);
+        typename std::vector<Evaluation>::const_iterator last =
+            this->weights_.data_.begin() + (getValue(i) + 1) * output_cols;
+
+        out->data_.insert(out->data_.end(), first, last);
+    });
+
+    return true;
+}
+
+template<class Evaluation>
+bool KerasLayerLSTM<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     unsigned int wi_rows = 0;
@@ -511,19 +559,20 @@ bool KerasLayerLSTM::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerLSTM::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerLSTM<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     // Assume bo always keeps the output shape and we will always receive one
     // single sample.
     int outputDim = bo_.dims_[1];
-    Tensor ht_1 = Tensor(1, outputDim);
-    Tensor ct_1 = Tensor(1, outputDim);
+    Tensor<Evaluation>  ht_1 = Tensor(1, outputDim);
+    Tensor<Evaluation>  ct_1 = Tensor(1, outputDim);
 
     ht_1.Fill(0.0f);
     ct_1.Fill(0.0f);
 
     int steps = in->dims_[0];
 
-    Tensor outputs, lastOutput;
+    Tensor<Evaluation>  outputs, lastOutput;
 
     if (return_sequences_) {
         outputs.dims_ = {steps, outputDim};
@@ -531,7 +580,7 @@ bool KerasLayerLSTM::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     }
 
     for (int s = 0; s < steps; s++) {
-        Tensor x = in->Select(s);
+        Tensor<Evaluation>  x = in->Select(s);
 
         KASSERT(Step(&x, &lastOutput, &ht_1, &ct_1), "Failed to execute step");
 
@@ -550,55 +599,19 @@ bool KerasLayerLSTM::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     return true;
 }
 
-bool KerasLayerEmbedding::LoadLayer(std::ifstream* file) {
-    KASSERT(file, "Invalid file stream");
+template<class Evaluation>
+bool KerasLayerLSTM<Evaluation>::Step(Tensor<Evaluation> * x, Tensor<Evaluation> * out, Tensor<Evaluation> * ht_1, Tensor<Evaluation> * ct_1) {
+    Tensor<Evaluation>  xi = x->Dot(Wi_) + bi_;
+    Tensor<Evaluation>  xf = x->Dot(Wf_) + bf_;
+    Tensor<Evaluation>  xc = x->Dot(Wc_) + bc_;
+    Tensor<Evaluation>  xo = x->Dot(Wo_) + bo_;
 
-    unsigned int weights_rows = 0;
-    KASSERT(ReadUnsignedInt(file, &weights_rows), "Expected weight rows");
-    KASSERT(weights_rows > 0, "Invalid weights # rows");
+    Tensor<Evaluation>  i_ = xi + ht_1->Dot(Ui_);
+    Tensor<Evaluation>  f_ = xf + ht_1->Dot(Uf_);
+    Tensor<Evaluation>  c_ = xc + ht_1->Dot(Uc_);
+    Tensor<Evaluation>  o_ = xo + ht_1->Dot(Uo_);
 
-    unsigned int weights_cols = 0;
-    KASSERT(ReadUnsignedInt(file, &weights_cols), "Expected weight cols");
-    KASSERT(weights_cols > 0, "Invalid weights shape");
-
-    weights_.Resize(weights_rows, weights_cols);
-    KASSERT(
-        ReadFloats(file, weights_.data_.data(), weights_rows * weights_cols),
-        "Expected weights");
-
-    return true;
-}
-
-bool KerasLayerEmbedding::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
-    int output_rows = in->dims_[1];
-    int output_cols = weights_.dims_[1];
-    out->dims_ = {output_rows, output_cols};
-    out->data_.reserve(output_rows * output_cols);
-
-    std::for_each(in->data_.begin(), in->data_.end(), [=](Evaluation i) {
-        std::vector<Evaluation>::const_iterator first =
-            this->weights_.data_.begin() + (getValue(i) * output_cols);
-        std::vector<Evaluation>::const_iterator last =
-            this->weights_.data_.begin() + (getValue(i) + 1) * output_cols;
-
-        out->data_.insert(out->data_.end(), first, last);
-    });
-
-    return true;
-}
-
-bool KerasLayerLSTM::Step(Tensor* x, Tensor* out, Tensor* ht_1, Tensor* ct_1) {
-    Tensor xi = x->Dot(Wi_) + bi_;
-    Tensor xf = x->Dot(Wf_) + bf_;
-    Tensor xc = x->Dot(Wc_) + bc_;
-    Tensor xo = x->Dot(Wo_) + bo_;
-
-    Tensor i_ = xi + ht_1->Dot(Ui_);
-    Tensor f_ = xf + ht_1->Dot(Uf_);
-    Tensor c_ = xc + ht_1->Dot(Uc_);
-    Tensor o_ = xo + ht_1->Dot(Uo_);
-
-    Tensor i, f, cc, o;
+    Tensor<Evaluation>  i, f, cc, o;
 
     KASSERT(innerActivation_.Apply(&i_, &i),
             "Failed to apply inner activation on i");
@@ -615,7 +628,7 @@ bool KerasLayerLSTM::Step(Tensor* x, Tensor* out, Tensor* ht_1, Tensor* ct_1) {
 
     return true;
 }
- */
+ 
 template<class Evaluation>
 bool KerasModel<Evaluation>::LoadModel(const std::string& filename) {
     std::ifstream file(filename.c_str(), std::ios::binary);

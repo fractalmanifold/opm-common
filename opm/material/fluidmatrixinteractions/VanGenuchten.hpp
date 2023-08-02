@@ -35,8 +35,6 @@
 #include <cmath>
 #include <cassert>
 
-#include <opm/ml/keras_model.hpp>
-
 namespace Opm {
 /*!
  * \ingroup FluidMatrixInteractions
@@ -261,39 +259,10 @@ public:
     template <class Evaluation>
     static Evaluation twoPhaseSatKrw(const Params& params, const Evaluation& Sw)
     {
+        assert(0.0 <= Sw && Sw <= 1.0);
 
-      KerasModel model;
-      // Beware of the correct path (we are working in opm-model/test in the current case)
-      model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelVGkrw");
-      Tensor in{1};
-      // const Evaluation temp = Sw;
-      in.data_ = {Sw};
-      // Run prediction.
-      Tensor out;
-      model.Apply(&in, &out);
-
-      assert(0.0 <= Sw && Sw <= 1.0);
-
-      Evaluation r = 1.0 - pow(1.0 - pow(Sw, 1/params.vgM()), params.vgM());
-      Evaluation result= 0.0;
-      Evaluation exactsol = sqrt(Sw)*r*r;
-
-      if (out.data_[0].value() <= 1.e-5)
-        result= exactsol;
-      else if (out.data_[0].value() > 0.9) {
-        result= exactsol;
-      }
-      else
-        result=out.data_[0].value();
-      //
-      // std::cout<<"params.vgM()"<< params.vgM()<<std::endl;
-
-      // return Sn*Sn*(1. - pow(Sw, exponent));
-      // return out.data_[0].value();
-      return result;
-
-      // return out.data_[0].value();
-      // return sqrt(Sw)*r*r;
+        Evaluation r = 1.0 - pow(1.0 - pow(Sw, 1/params.vgM()), params.vgM());
+        return sqrt(Sw)*r*r;
     }
 
     /*!
@@ -319,31 +288,9 @@ public:
     {
         assert(0 <= Sw && Sw <= 1);
 
-        KerasModel model;
-        // Beware of the correct path (we are working in opm-model/test in the current case)
-        model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelVGkrn");
-        Tensor in{1};
-        // const Evaluation temp = Sw;
-        in.data_ = {Sw};
-        // Run prediction.
-        Tensor out;
-        model.Apply(&in, &out);
-
-        Evaluation result= 0.0;
-        Evaluation exactsol = pow(1 - Sw, 1.0/3) * pow(1 - pow(Sw, 1/params.vgM()), 2*params.vgM());
-
-        if (out.data_[0].value() <= 1.e-5)
-          result= exactsol;
-        else if (out.data_[0].value() > 0.9) {
-          result= exactsol;
-        }
-        else
-          result=out.data_[0].value();
-
-        // return
-        //     pow(1 - Sw, 1.0/3) *
-        //     pow(1 - pow(Sw, 1/params.vgM()), 2*params.vgM());
-        return result;
+        return
+            pow(1 - Sw, 1.0/3) *
+            pow(1 - pow(Sw, 1/params.vgM()), 2*params.vgM());
     }
 };
 } // namespace Opm

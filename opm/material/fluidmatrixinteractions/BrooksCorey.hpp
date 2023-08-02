@@ -37,8 +37,6 @@
 #include <cassert>
 #include <cmath>
 
-#include <opm/ml/keras_model.hpp>
-
 namespace Opm {
 /*!
  * \ingroup FluidMatrixInteractions
@@ -238,35 +236,9 @@ public:
     template <class Evaluation>
     static Evaluation twoPhaseSatKrw(const Params& params, const Evaluation& Sw)
     {
-        KerasModel model;
-        // Beware of the correct path (we are working in opm-model/test in the current case)
-        model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrw");
-        Tensor in{1};
-        const Evaluation temp = Sw;
-        in.data_ = {temp};
-        // Run prediction.
-        Tensor out;
-        model.Apply(&in, &out);
-
         assert(0.0 <= Sw && Sw <= 1.0);
-        auto exactsol = pow(Sw, 2.0/params.lambda() + 3.0);
 
-        // std::cout<<"NNtestval"<< out.data_[0]<<std::endl;
-        // std::cout<<"exactsol"<< exactsol<<std::endl;
-
-        Evaluation result= 0.0;
-
-        if (out.data_[0].value() <= 1.e-50)
-          result= exactsol;
-        else if (out.data_[0].value() > 0.99) {
-          result= exactsol;
-        }
-        else
-          result=out.data_[0].value();
-
-        // return pow(Sw, 2.0/params.lambda() + 3.0);
-        // return out.data_[0].value();
-        return result;
+        return pow(Sw, 2.0/params.lambda() + 3.0);
     }
 
     template <class Evaluation>
@@ -297,33 +269,9 @@ public:
     {
         assert(0.0 <= Sw && Sw <= 1.0);
 
-        KerasModel model;
-        // Beware of the correct path (we are working in opm-model/test in the current case)
-        model.LoadModel("../../opm-common/opm/material/fluidmatrixinteractions/ml_tools/example.modelBCkrn");
-        Tensor in{1};
-        const Evaluation temp = Sw;
-        in.data_ = {temp};
-        // Run prediction.
-        Tensor out;
-        model.Apply(&in, &out);
-        //
         Scalar exponent = 2.0/params.lambda() + 1.0;
         const Evaluation Sn = 1.0 - Sw;
-        auto exactsol = Sn*Sn*(1. - pow(Sw, exponent));
-
-        Evaluation result= 0.0;
-
-        if (out.data_[0].value() <= 1.e-50)
-          result= exactsol;
-        else if (out.data_[0].value() > 0.99) {
-          result= exactsol;
-        }
-        else
-          result=out.data_[0].value();
-        //
-        // return Sn*Sn*(1. - pow(Sw, exponent));
-        // return out.data_[0].value();
-        return result;
+        return Sn*Sn*(1. - pow(Sw, exponent));
     }
 
     template <class Evaluation>
