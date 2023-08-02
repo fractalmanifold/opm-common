@@ -13,7 +13,7 @@
 
 // typedef double Scalar;
 
-typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
+//typedef Opm::DenseAd::Evaluation<double, 3> Evaluation;
 //typedef float Evaluation;
 //typedef double Evaluation;
 namespace Opm {
@@ -168,7 +168,7 @@ class Tensor {
 
         std::transform(data_.begin(), data_.end(), other.data_.begin(),
                        std::back_inserter(result.data_),
-                       [](Evaluation x, Evaluation y) { return x + y; });
+                       [](Foo x, Foo y) { return x + y; });
 
         return result;
     }
@@ -183,7 +183,7 @@ class Tensor {
 
         std::transform(data_.begin(), data_.end(), other.data_.begin(),
                        std::back_inserter(result.data_),
-                       [](Evaluation x, Evaluation y) { return x * y; });
+                       [](Foo x, Foo y) { return x * y; });
 
         return result;
     }
@@ -271,6 +271,7 @@ class Tensor {
     std::vector<Foo> data_;
 };
 
+template<class Evaluation>
 class KerasLayer {
   public:
     KerasLayer() {}
@@ -282,7 +283,8 @@ class KerasLayer {
     virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) = 0;
 };
 
-class KerasLayerActivation : public KerasLayer {
+template<class Evaluation>
+class KerasLayerActivation : public KerasLayer<Evaluation> {
   public:
     enum ActivationType {
         kLinear = 1,
@@ -305,7 +307,8 @@ class KerasLayerActivation : public KerasLayer {
     ActivationType activation_type_;
 };
 
-class KerasLayerDense : public KerasLayer {
+template<class Evaluation>
+class KerasLayerDense : public KerasLayer<Evaluation> {
   public:
     KerasLayerDense() {}
 
@@ -319,7 +322,7 @@ class KerasLayerDense : public KerasLayer {
     Tensor<float> weights_;
     Tensor<float> biases_;
 
-    KerasLayerActivation activation_;
+    KerasLayerActivation<Evaluation> activation_;
 };
 
 /* class KerasLayerConvolution2d : public KerasLayer {
@@ -339,7 +342,8 @@ class KerasLayerDense : public KerasLayer {
     KerasLayerActivation activation_;
 }; */
 
-class KerasLayerFlatten : public KerasLayer {
+template<class Evaluation>
+class KerasLayerFlatten : public KerasLayer<Evaluation> {
   public:
     KerasLayerFlatten() {}
 
@@ -426,6 +430,7 @@ class KerasLayerEmbedding : public KerasLayer {
     Tensor<float> weights_;
 }; */
 
+template<class Evaluation>
 class KerasModel {
   public:
     enum LayerType {
@@ -452,7 +457,7 @@ class KerasModel {
     virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
   private:
-    std::vector<KerasLayer*> layers_;
+    std::vector<KerasLayer<Evaluation>*> layers_;
 };
 
 class KerasTimer {
@@ -461,7 +466,7 @@ class KerasTimer {
 
     void Start() { start_ = std::chrono::high_resolution_clock::now(); }
 
-    Evaluation Stop() {
+    float Stop() {
         std::chrono::time_point<std::chrono::high_resolution_clock> now =
             std::chrono::high_resolution_clock::now();
 

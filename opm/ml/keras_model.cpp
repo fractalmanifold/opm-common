@@ -44,7 +44,8 @@ bool ReadFloats(std::ifstream* file, float* f, size_t n) {
     return true;
 }
 
-bool KerasLayerActivation::LoadLayer(std::ifstream* file) {
+template<class Evaluation>
+bool KerasLayerActivation<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     unsigned int activation = 0;
@@ -77,7 +78,8 @@ bool KerasLayerActivation::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerActivation::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerActivation<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -135,7 +137,8 @@ bool KerasLayerActivation::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out
     return true;
 }
 
-bool KerasLayerDense::LoadLayer(std::ifstream* file) {
+template<class Evaluation>
+bool KerasLayerDense<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
 
     unsigned int weights_rows = 0;
@@ -164,7 +167,8 @@ bool KerasLayerDense::LoadLayer(std::ifstream* file) {
     return true;
 }
 
-bool KerasLayerDense::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerDense<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
     KASSERT(in->dims_.size() <= 2, "Invalid input dimensions");
@@ -277,12 +281,14 @@ bool KerasLayerConvolution2d::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* 
     return true;
 }
  */
-bool KerasLayerFlatten::LoadLayer(std::ifstream* file) {
+template<class Evaluation>
+bool KerasLayerFlatten<Evaluation>::LoadLayer(std::ifstream* file) {
     KASSERT(file, "Invalid file stream");
     return true;
 }
 
-bool KerasLayerFlatten::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasLayerFlatten<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     KASSERT(in, "Invalid input");
     KASSERT(out, "Invalid output");
 
@@ -610,7 +616,8 @@ bool KerasLayerLSTM::Step(Tensor* x, Tensor* out, Tensor* ht_1, Tensor* ct_1) {
     return true;
 }
  */
-bool KerasModel::LoadModel(const std::string& filename) {
+template<class Evaluation>
+bool KerasModel<Evaluation>::LoadModel(const std::string& filename) {
     std::ifstream file(filename.c_str(), std::ios::binary);
     KASSERT(file.is_open(), "Unable to open file %s", filename.c_str());
 
@@ -621,23 +628,23 @@ bool KerasModel::LoadModel(const std::string& filename) {
         unsigned int layer_type = 0;
         KASSERT(ReadUnsignedInt(&file, &layer_type), "Expected layer type");
 
-        KerasLayer* layer = NULL;
+        KerasLayer<Evaluation>* layer = NULL;
 
         switch (layer_type) {
         case kDense:
-            layer = new KerasLayerDense();
+            layer = new KerasLayerDense<Evaluation>();
             break;
         case kConvolution2d:
         //    layer = new KerasLayerConvolution2d();
             break;
         case kFlatten:
-            layer = new KerasLayerFlatten();
+            layer = new KerasLayerFlatten<Evaluation>();
             break;
         case kElu:
         //    layer = new KerasLayerElu();
             break;
         case kActivation:
-            layer = new KerasLayerActivation();
+            layer = new KerasLayerActivation<Evaluation>();
             break;
         case kMaxPooling2D:
         //    layer = new KerasLayerMaxPooling2d();
@@ -667,7 +674,8 @@ bool KerasModel::LoadModel(const std::string& filename) {
     return true;
 }
 
-bool KerasModel::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
+template<class Evaluation>
+bool KerasModel<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     Tensor<Evaluation> temp_in, temp_out;
 
     for (unsigned int i = 0; i < layers_.size(); i++) {
@@ -686,5 +694,6 @@ bool KerasModel::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out) {
     return true;
 }
 
-
+template class KerasModel<double>;
+template class KerasModel<Opm::DenseAd::Evaluation<double, 3>>;
 } // namespace Opm
