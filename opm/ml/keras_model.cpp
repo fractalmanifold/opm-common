@@ -709,4 +709,6 @@ bool KerasModel<Evaluation>::Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* o
 
 template class KerasModel<double>;
 template class KerasModel<Opm::DenseAd::Evaluation<double, 3>>;
+template class KerasModel<Opm::DenseAd::Evaluation<double, 2>>;
+
 } // namespace Opm
