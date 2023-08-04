@@ -388,37 +388,37 @@ class KerasLayerMaxPooling2d : public KerasLayer<Evaluation> {
     unsigned int pool_size_k_;
 };
 
-template<class Evaluation>
-class KerasLayerLSTM : public KerasLayer<Evaluation> {
-  public:
-    KerasLayerLSTM() : return_sequences_(false) {}
+// template<class Evaluation>
+// class KerasLayerLSTM : public KerasLayer<Evaluation> {
+//   public:
+//     KerasLayerLSTM() : return_sequences_(false) {}
 
-    virtual ~KerasLayerLSTM() {}
+//     virtual ~KerasLayerLSTM() {}
 
-    virtual bool LoadLayer(std::ifstream* file);
+//     virtual bool LoadLayer(std::ifstream* file);
 
-    virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
+//     virtual bool Apply(Tensor<Evaluation>* in, Tensor<Evaluation>* out);
 
-  private:
-    bool Step(Tensor<Evaluation>* x, Tensor<Evaluation>* out, Tensor<Evaluation>* ht_1, Tensor<Evaluation>* ct_1);
+//   private:
+//     bool Step(Tensor<Evaluation>* x, Tensor<Evaluation>* out, Tensor<Evaluation>* ht_1, Tensor<Evaluation>* ct_1);
 
-    Tensor<float> Wi_;
-    Tensor<float> Ui_;
-    Tensor<float> bi_;
-    Tensor<float> Wf_;
-    Tensor<float> Uf_;
-    Tensor<float> bf_;
-    Tensor<float> Wc_;
-    Tensor<float> Uc_;
-    Tensor<float> bc_;
-    Tensor<float> Wo_;
-    Tensor<float> Uo_;
-    Tensor<float> bo_;
+//     Tensor<float> Wi_;
+//     Tensor<float> Ui_;
+//     Tensor<float> bi_;
+//     Tensor<float> Wf_;
+//     Tensor<float> Uf_;
+//     Tensor<float> bf_;
+//     Tensor<float> Wc_;
+//     Tensor<float> Uc_;
+//     Tensor<float> bc_;
+//     Tensor<float> Wo_;
+//     Tensor<float> Uo_;
+//     Tensor<float> bo_;
 
-    KerasLayerActivation<Evaluation> innerActivation_;
-    KerasLayerActivation<Evaluation> activation_;
-    bool return_sequences_;
-};
+//     KerasLayerActivation<Evaluation> innerActivation_;
+//     KerasLayerActivation<Evaluation> activation_;
+//     bool return_sequences_;
+// };
 
 
 template<class Evaluation>
